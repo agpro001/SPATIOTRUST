@@ -9,6 +9,10 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { Sidebar } from "@/components/Sidebar";
+import { WalletButton } from "@/components/WalletButton";
+import { AICopilot } from "@/components/AICopilot";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -119,7 +123,37 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="min-h-screen flex w-full">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-14 shrink-0 flex items-center justify-between gap-4 px-5 border-b border-border bg-background/70 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                oracle network · live
+              </div>
+            </div>
+            <WalletButton />
+          </header>
+          <main className="flex-1 min-w-0">
+            <Outlet />
+          </main>
+        </div>
+        <AICopilot />
+        <Toaster
+          theme="dark"
+          position="bottom-left"
+          toastOptions={{
+            style: {
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "12px",
+            },
+          }}
+        />
+      </div>
     </QueryClientProvider>
   );
 }
