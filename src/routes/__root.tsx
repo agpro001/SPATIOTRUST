@@ -9,6 +9,10 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { Sidebar } from "@/components/Sidebar";
+import { WalletButton } from "@/components/WalletButton";
+import { AICopilot } from "@/components/AICopilot";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -72,11 +76,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SpatioTrust — Decentralized Spatial Oracle Network" },
+      { name: "description", content: "Verify the physical integrity of real-world 3D environments before releasing on-chain funds. ZK-proof attested spatial oracles." },
+      { name: "author", content: "SpatioTrust" },
+      { property: "og:title", content: "SpatioTrust — Spatial Oracle Network" },
+      { property: "og:description", content: "Decentralized 3D geometry validation with ZK-proof attestation for DeFi." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -85,6 +89,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap",
       },
     ],
   }),
@@ -113,7 +123,37 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="min-h-screen flex w-full">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-14 shrink-0 flex items-center justify-between gap-4 px-5 border-b border-border bg-background/70 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                oracle network · live
+              </div>
+            </div>
+            <WalletButton />
+          </header>
+          <main className="flex-1 min-w-0">
+            <Outlet />
+          </main>
+        </div>
+        <AICopilot />
+        <Toaster
+          theme="dark"
+          position="bottom-left"
+          toastOptions={{
+            style: {
+              background: "var(--popover)",
+              color: "var(--popover-foreground)",
+              border: "1px solid var(--border)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "12px",
+            },
+          }}
+        />
+      </div>
     </QueryClientProvider>
   );
 }
