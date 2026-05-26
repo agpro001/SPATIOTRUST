@@ -28,11 +28,9 @@ function extOf(name: string) {
 
 /** Render the first page of a PDF to a PNG blob (client-side, pdfjs-dist). */
 async function renderPdfFirstPage(file: File): Promise<Blob> {
-  // @ts-expect-error - pdfjs-dist subpath
-  const pdfjs: any = await import("pdfjs-dist/build/pdf.mjs");
-  // @ts-expect-error - worker subpath
-  const worker = await import("pdfjs-dist/build/pdf.worker.mjs?url");
-  pdfjs.GlobalWorkerOptions.workerSrc = (worker as any).default;
+  const pdfjs: any = await import(/* @vite-ignore */ "pdfjs-dist/build/pdf.mjs" as any);
+  const worker: any = await import(/* @vite-ignore */ "pdfjs-dist/build/pdf.worker.mjs?url" as any);
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   const buf = await file.arrayBuffer();
   const doc = await pdfjs.getDocument({ data: buf }).promise;
   const page = await doc.getPage(1);
