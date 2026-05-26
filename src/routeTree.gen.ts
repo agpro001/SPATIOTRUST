@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OracleLogsRouteImport } from './routes/oracle-logs'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiValidateSpatialDataRouteImport } from './routes/api/validate-spatial-data'
+import { Route as ApiAiVisionRouteImport } from './routes/api/ai-vision'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai-chat'
 import { Route as ApiMockScenarioRouteImport } from './routes/api/mock.$scenario'
 
@@ -26,6 +28,11 @@ const OracleLogsRoute = OracleLogsRouteImport.update({
   path: '/oracle-logs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -34,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiValidateSpatialDataRoute = ApiValidateSpatialDataRouteImport.update({
   id: '/api/validate-spatial-data',
   path: '/api/validate-spatial-data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiVisionRoute = ApiAiVisionRouteImport.update({
+  id: '/api/ai-vision',
+  path: '/api/ai-vision',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiChatRoute = ApiAiChatRouteImport.update({
@@ -49,26 +61,32 @@ const ApiMockScenarioRoute = ApiMockScenarioRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
+  '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
 }
@@ -76,34 +94,42 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
+    | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
+    | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
   id:
     | '__root__'
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
+    | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRoute
   OracleLogsRoute: typeof OracleLogsRoute
   SettingsRoute: typeof SettingsRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
+  ApiAiVisionRoute: typeof ApiAiVisionRoute
   ApiValidateSpatialDataRoute: typeof ApiValidateSpatialDataRoute
   ApiMockScenarioRoute: typeof ApiMockScenarioRoute
 }
@@ -124,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OracleLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -136,6 +169,13 @@ declare module '@tanstack/react-router' {
       path: '/api/validate-spatial-data'
       fullPath: '/api/validate-spatial-data'
       preLoaderRoute: typeof ApiValidateSpatialDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai-vision': {
+      id: '/api/ai-vision'
+      path: '/api/ai-vision'
+      fullPath: '/api/ai-vision'
+      preLoaderRoute: typeof ApiAiVisionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai-chat': {
@@ -157,22 +197,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRoute,
   OracleLogsRoute: OracleLogsRoute,
   SettingsRoute: SettingsRoute,
   ApiAiChatRoute: ApiAiChatRoute,
+  ApiAiVisionRoute: ApiAiVisionRoute,
   ApiValidateSpatialDataRoute: ApiValidateSpatialDataRoute,
   ApiMockScenarioRoute: ApiMockScenarioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
