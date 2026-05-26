@@ -1,13 +1,16 @@
 import { useCallback, useState } from "react";
-import { motion } from "framer-motion";
-import { Upload, Boxes, AlertTriangle, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, Boxes, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/lib/store";
 import { PIPELINE_STEPS } from "@/lib/pipeline";
 import type { Point, ValidationResult } from "@/lib/validator";
+import { ingestFile, type IngestionResult } from "@/lib/ingestion";
 
 export function DropZone() {
   const [dragging, setDragging] = useState(false);
+  const [ingestPhase, setIngestPhase] = useState<string | null>(null);
+  const [lastSource, setLastSource] = useState<IngestionResult["source"] | null>(null);
   const {
     isValidating, setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog,
   } = useApp();
@@ -72,13 +75,17 @@ export function DropZone() {
   const onFile = useCallback(
     async (file: File) => {
       try {
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        const points: Point[] = Array.isArray(parsed) ? parsed : parsed.points;
-        if (!Array.isArray(points) || points.length === 0) throw new Error("Invalid JSON shape");
-        await runValidation(points, file.name);
+        setIngestPhase("decoding…");
+        const res = await ingestFile(file, (_, msg) => setIngestPhase(msg));
+        setLastSource(res.source);
+        setIngestPhase(null);
+        if (res.aiInferred) {
+          toast.success(`Gemini Vision inferred ${res.points.length} points`);
+        }
+        await runValidation(res.points, file.name);
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Could not parse JSON");
+        setIngestPhase(null);
+        toast.error(e instanceof Error ? e.message : "Could not parse file");
       }
     },
     [runValidation]
@@ -128,7 +135,7 @@ export function DropZone() {
         <input
           id="spatio-file"
           type="file"
-          accept="application/json,.json"
+          accept=".json,.csv,.tsv,.txt,.xyz,.ply,.obj,image/*,application/pdf"
           className="sr-only"
           disabled={isValidating}
           onChange={(e) => {
@@ -136,17 +143,29 @@ export function DropZone() {
             if (f) onFile(f);
           }}
         />
-        {isValidating ? (
+        {isValidating || ingestPhase ? (
           <Loader2 className="mx-auto size-7 text-primary animate-spin" />
         ) : (
           <Upload className="mx-auto size-7 text-primary/80" />
         )}
         <div className="mt-3 text-sm text-foreground">
-          {isValidating ? "Processing payload …" : "Drop JSON point cloud here"}
+          {ingestPhase ?? (isValidating ? "Processing payload …" : "Drop any file — we'll figure it out")}
         </div>
         <div className="text-xs text-muted-foreground font-mono mt-1">
-          {`Array<{x:number,y:number,z:number}>`}
+          JSON · CSV · XYZ · PLY · OBJ · PNG · JPG · PDF
         </div>
+        <AnimatePresence>
+          {lastSource && lastSource !== "json" && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-3 inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent/15 border border-accent/40 text-accent"
+            >
+              <Sparkles className="size-3" /> source: {lastSource}{(lastSource === "image" || lastSource === "pdf") && " · ai-inferred"}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.label>
 
       <div className="grid grid-cols-2 gap-3">

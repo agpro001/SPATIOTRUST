@@ -105,7 +105,15 @@ export function AICopilot() {
           if (payload === "[DONE]") { done = true; break; }
           try {
             const parsed = JSON.parse(payload);
-            const delta = parsed.choices?.[0]?.delta?.content as string | undefined;
+            const delta = (parsed.delta ?? parsed.choices?.[0]?.delta?.content) as string | undefined;
+            if (parsed.error) {
+              setMessages((m) => {
+                const c = [...m];
+                c[c.length - 1] = { role: "assistant", content: `⚠ ${parsed.error}` };
+                return c;
+              });
+              continue;
+            }
             if (delta) {
               acc += delta;
               setMessages((m) => {
