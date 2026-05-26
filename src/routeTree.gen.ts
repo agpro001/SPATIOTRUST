@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OracleLogsRouteImport } from './routes/oracle-logs'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiValidateSpatialDataRouteImport } from './routes/api/validate-spatial-data'
 import { Route as ApiAiVisionRouteImport } from './routes/api/ai-vision'
@@ -25,6 +26,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const OracleLogsRoute = OracleLogsRouteImport.update({
   id: '/oracle-logs',
   path: '/oracle-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,6 +61,7 @@ const ApiMockScenarioRoute = ApiMockScenarioRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
   '/api/ai-chat': typeof ApiAiChatRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/app'
     | '/oracle-logs'
     | '/settings'
     | '/api/ai-chat'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRoute
   OracleLogsRoute: typeof OracleLogsRoute
   SettingsRoute: typeof SettingsRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/oracle-logs'
       fullPath: '/oracle-logs'
       preLoaderRoute: typeof OracleLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRoute,
   OracleLogsRoute: OracleLogsRoute,
   SettingsRoute: SettingsRoute,
   ApiAiChatRoute: ApiAiChatRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
