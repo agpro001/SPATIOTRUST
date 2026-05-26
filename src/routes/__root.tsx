@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -120,26 +121,35 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLanding = pathname === "/";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex w-full">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 shrink-0 flex items-center justify-between gap-4 px-5 border-b border-border bg-background/70 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-                oracle network · live
-              </div>
-            </div>
-            <WalletButton />
-          </header>
-          <main className="flex-1 min-w-0">
-            <Outlet />
-          </main>
+      {isLanding ? (
+        <div className="min-h-screen">
+          <Outlet />
         </div>
-        <AICopilot />
+      ) : (
+        <div className="min-h-screen flex w-full">
+          <Sidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <header className="h-14 shrink-0 flex items-center justify-between gap-4 px-5 border-b border-border bg-background/70 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                  oracle network · live
+                </div>
+              </div>
+              <WalletButton />
+            </header>
+            <main className="flex-1 min-w-0">
+              <Outlet />
+            </main>
+          </div>
+          <AICopilot />
+        </div>
+      )}
         <Toaster
           theme="dark"
           position="bottom-left"
@@ -153,7 +163,6 @@ function RootComponent() {
             },
           }}
         />
-      </div>
     </QueryClientProvider>
   );
 }

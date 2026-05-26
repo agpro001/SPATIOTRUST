@@ -3,7 +3,7 @@ import { Activity, ScrollText, Settings, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 
 const items = [
-  { to: "/", label: "Overview", icon: Activity },
+  { to: "/app", label: "Mission Control", icon: Activity },
   { to: "/oracle-logs", label: "Oracle Logs", icon: ScrollText },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -29,12 +29,17 @@ export function Sidebar() {
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
-        {items.map((it) => {
-          const active = it.to === "/" ? pathname === "/" : pathname.startsWith(it.to);
+        {items.map((it, i) => {
+          const active = pathname === it.to || (it.to !== "/" && pathname.startsWith(it.to));
           const Icon = it.icon;
           return (
-            <Link
+            <motion.div
               key={it.to}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+            <Link
               to={it.to}
               className={`group flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors border ${
                 active
@@ -46,6 +51,7 @@ export function Sidebar() {
               <span className="tracking-wide">{it.label}</span>
               {active && <span className="ml-auto size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary-glow)]" />}
             </Link>
+            </motion.div>
           );
         })}
       </nav>
