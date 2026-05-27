@@ -1,4 +1,4 @@
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, type ReactElement } from "react";
 import { motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -58,7 +58,7 @@ type Card = {
   label: string;
   value: string;
   href: string;
-  Icon: (p: { className?: string }) => JSX.Element;
+  Icon: (p: { className?: string }) => ReactElement;
   hue: string;
 };
 
