@@ -6,19 +6,22 @@ import { useApp } from "@/lib/store";
 import { PIPELINE_STEPS } from "@/lib/pipeline";
 import type { Point, ValidationResult } from "@/lib/validator";
 import { ingestFile, type IngestionResult } from "@/lib/ingestion";
+import { IngestProgress } from "@/components/IngestProgress";
 
 export function DropZone() {
   const [dragging, setDragging] = useState(false);
-  const [ingestPhase, setIngestPhase] = useState<string | null>(null);
   const [lastSource, setLastSource] = useState<IngestionResult["source"] | null>(null);
   const {
     isValidating, setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog,
+    setIngest, resetIngest, baseSupportTolerance, confidenceSensitivity,
   } = useApp();
+  const ingestPhase = useApp((s) => s.ingestPhase);
 
   const runValidation = useCallback(
     async (points: Point[], label: string) => {
       setPoints(points, label);
       startValidation();
+      setIngest("validating", -1, "validating with oracle quorum …");
       pushTerminal(`[oracle] payload accepted · ${points.length.toLocaleString()} points · scenario=${label}`);
 
       // Drive the pipeline state machine in sync with the 2 s server delay
@@ -36,7 +39,7 @@ export function DropZone() {
         const res = await fetch("/api/validate-spatial-data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(points),
+          body: JSON.stringify({ points, opts: { baseSupportTolerance, confidenceSensitivity } }),
         });
         const json = (await res.json()) as ValidationResult | { error: string };
         timers.forEach(clearTimeout);
@@ -45,6 +48,7 @@ export function DropZone() {
           pushTerminal(`[oracle] validation rejected: ${err}`, "fail");
           toast.error(err);
           setResult(null);
+          resetIngest();
           return;
         }
         if (json.status === "pass") {
@@ -61,34 +65,43 @@ export function DropZone() {
           timestamp: Date.now(),
           result: json,
         });
+        resetIngest();
       } catch (e) {
         timers.forEach(clearTimeout);
         const msg = e instanceof Error ? e.message : "Unknown error";
         pushTerminal(`[oracle] network failure: ${msg}`, "fail");
         toast.error(msg);
         setResult(null);
+        resetIngest();
       }
     },
-    [setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog]
+    [setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog,
+     setIngest, resetIngest, baseSupportTolerance, confidenceSensitivity]
   );
 
   const onFile = useCallback(
     async (file: File) => {
       try {
-        setIngestPhase("decoding…");
-        const res = await ingestFile(file, (_, msg) => setIngestPhase(msg));
+        setIngest("reading", 0.02, `reading ${file.name} …`);
+        const res = await ingestFile(file, (phase, msg, pct) => {
+          const mapped =
+            phase === "decoding" ? "decoding" :
+            phase === "parsing" ? "parsing" :
+            phase === "rendering-pdf" ? "rendering-pdf" :
+            phase === "ai-inference" ? "vision" : "decoding";
+          setIngest(mapped as any, pct, msg);
+        });
         setLastSource(res.source);
-        setIngestPhase(null);
         if (res.aiInferred) {
-          toast.success(`Gemini Vision inferred ${res.points.length} points`);
+          toast.success(`AI Mesh vision inferred ${res.points.length} points`);
         }
         await runValidation(res.points, file.name);
       } catch (e) {
-        setIngestPhase(null);
+        resetIngest();
         toast.error(e instanceof Error ? e.message : "Could not parse file");
       }
     },
-    [runValidation]
+    [runValidation, setIngest, resetIngest]
   );
 
   const loadScenario = useCallback(
@@ -135,7 +148,7 @@ export function DropZone() {
         <input
           id="spatio-file"
           type="file"
-          accept=".json,.csv,.tsv,.txt,.xyz,.ply,.obj,image/*,application/pdf"
+          accept=".json,.csv,.tsv,.txt,.xyz,.ply,.obj,.glb,.gltf,image/*,application/pdf"
           className="sr-only"
           disabled={isValidating}
           onChange={(e) => {
@@ -143,16 +156,18 @@ export function DropZone() {
             if (f) onFile(f);
           }}
         />
-        {isValidating || ingestPhase ? (
+        {isValidating || ingestPhase !== "idle" ? (
           <Loader2 className="mx-auto size-7 text-primary animate-spin" />
         ) : (
           <Upload className="mx-auto size-7 text-primary/80" />
         )}
         <div className="mt-3 text-sm text-foreground">
-          {ingestPhase ?? (isValidating ? "Processing payload …" : "Drop any file — we'll figure it out")}
+          {ingestPhase !== "idle"
+            ? "Processing payload …"
+            : "Drop any file — we'll figure it out"}
         </div>
         <div className="text-xs text-muted-foreground font-mono mt-1">
-          JSON · CSV · XYZ · PLY · OBJ · PNG · JPG · PDF
+          JSON · CSV · XYZ · PLY · OBJ · GLB · PNG · JPG · PDF
         </div>
         <AnimatePresence>
           {lastSource && lastSource !== "json" && (
@@ -167,6 +182,8 @@ export function DropZone() {
           )}
         </AnimatePresence>
       </motion.label>
+
+      <IngestProgress />
 
       <div className="grid grid-cols-2 gap-3">
         <button
