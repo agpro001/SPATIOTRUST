@@ -11,6 +11,38 @@ export type RunLog = {
   txHash?: string;
 };
 
+const LOG_KEY = "spatio:logs";
+const THRESH_KEY = "spatio:thresh";
+
+function loadLogs(): RunLog[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as RunLog[];
+  } catch { return []; }
+}
+function saveLogs(logs: RunLog[]) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, 200))); } catch { /* ignore */ }
+}
+function loadThresh(): { baseSupportTolerance: number; confidenceSensitivity: number } {
+  if (typeof window === "undefined") return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
+  try {
+    const raw = localStorage.getItem(THRESH_KEY);
+    if (!raw) return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
+    const j = JSON.parse(raw);
+    return {
+      baseSupportTolerance: Number.isFinite(j.baseSupportTolerance) ? j.baseSupportTolerance : 0.15,
+      confidenceSensitivity: Number.isFinite(j.confidenceSensitivity) ? j.confidenceSensitivity : 0.7,
+    };
+  } catch { return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 }; }
+}
+
+export type IngestPhase =
+  | "idle" | "reading" | "decoding" | "parsing"
+  | "rendering-pdf" | "vision" | "rendering" | "validating" | "done";
+
 export type AppState = {
   points: Point[] | null;
   scenarioLabel: string | null;
@@ -22,6 +54,11 @@ export type AppState = {
   wallet: WalletState | null;
   wcProjectId: string;
   autoNarrate: boolean;
+  ingestPhase: IngestPhase;
+  ingestPct: number; // 0..1, -1 = indeterminate
+  ingestMessage: string;
+  baseSupportTolerance: number; // 0..0.5
+  confidenceSensitivity: number; // 0..1
 
   setPoints: (points: Point[] | null, label: string | null) => void;
   startValidation: () => void;
@@ -34,6 +71,11 @@ export type AppState = {
   setWallet: (w: WalletState | null) => void;
   setWcProjectId: (id: string) => void;
   setAutoNarrate: (v: boolean) => void;
+  setIngest: (phase: IngestPhase, pct: number, message: string) => void;
+  resetIngest: () => void;
+  setBaseSupportTolerance: (v: number) => void;
+  setConfidenceSensitivity: (v: number) => void;
+  clearLogs: () => void;
 };
 
 export const useApp = create<AppState>((set) => ({
@@ -43,12 +85,16 @@ export const useApp = create<AppState>((set) => ({
   isValidating: false,
   activeStepIndex: -1,
   terminalLines: [
-    { id: "boot", text: "[boot] spatiotrust oracle v0.9.3 — awaiting spatial payload …", tone: "info" },
+    { id: "boot", text: "[boot] spatiotrust oracle v0.9.4 — awaiting spatial payload …", tone: "info" },
   ],
-  logs: [],
+  logs: loadLogs(),
   wallet: null,
   wcProjectId: typeof window !== "undefined" ? localStorage.getItem("spatio:wc") ?? "" : "",
   autoNarrate: true,
+  ingestPhase: "idle",
+  ingestPct: 0,
+  ingestMessage: "",
+  ...loadThresh(),
 
   setPoints: (points, scenarioLabel) => set({ points, scenarioLabel, result: null }),
   startValidation: () =>
@@ -64,13 +110,44 @@ export const useApp = create<AppState>((set) => ({
   clearTerminal: () =>
     set({ terminalLines: [{ id: "clr", text: "[oracle] terminal cleared.", tone: "info" }] }),
   setResult: (result) => set({ result, isValidating: false, activeStepIndex: -1 }),
-  addLog: (log) => set((s) => ({ logs: [log, ...s.logs].slice(0, 50) })),
-  attachTx: (id, tx) =>
-    set((s) => ({ logs: s.logs.map((l) => (l.id === id ? { ...l, txHash: tx } : l)) })),
+  addLog: (log) => set((s) => {
+    const logs = [log, ...s.logs].slice(0, 200);
+    saveLogs(logs);
+    return { logs };
+  }),
+  attachTx: (id, tx) => set((s) => {
+    const logs = s.logs.map((l) => (l.id === id ? { ...l, txHash: tx } : l));
+    saveLogs(logs);
+    return { logs };
+  }),
   setWallet: (wallet) => set({ wallet }),
   setWcProjectId: (id) => {
     if (typeof window !== "undefined") localStorage.setItem("spatio:wc", id);
     set({ wcProjectId: id });
   },
   setAutoNarrate: (autoNarrate) => set({ autoNarrate }),
+  setIngest: (ingestPhase, ingestPct, ingestMessage) =>
+    set({ ingestPhase, ingestPct, ingestMessage }),
+  resetIngest: () => set({ ingestPhase: "idle", ingestPct: 0, ingestMessage: "" }),
+  setBaseSupportTolerance: (v) => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(THRESH_KEY);
+        const cur = raw ? JSON.parse(raw) : {};
+        localStorage.setItem(THRESH_KEY, JSON.stringify({ ...cur, baseSupportTolerance: v }));
+      } catch { /* ignore */ }
+    }
+    set({ baseSupportTolerance: v });
+  },
+  setConfidenceSensitivity: (v) => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(THRESH_KEY);
+        const cur = raw ? JSON.parse(raw) : {};
+        localStorage.setItem(THRESH_KEY, JSON.stringify({ ...cur, confidenceSensitivity: v }));
+      } catch { /* ignore */ }
+    }
+    set({ confidenceSensitivity: v });
+  },
+  clearLogs: () => { saveLogs([]); set({ logs: [] }); },
 }));

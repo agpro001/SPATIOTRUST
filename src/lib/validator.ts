@@ -22,7 +22,19 @@ export type ValidationResult = {
   metrics: ValidationMetrics;
 };
 
-export async function validatePointCloud(points: Point[]): Promise<ValidationResult> {
+export type ValidatorOpts = {
+  /** 0..0.5 — extra slack when checking centroid lies inside base footprint. */
+  baseSupportTolerance?: number;
+  /** 0..1 — pass/fail confidence threshold (higher = stricter). */
+  confidenceSensitivity?: number;
+};
+
+export async function validatePointCloud(
+  points: Point[],
+  opts: ValidatorOpts = {}
+): Promise<ValidationResult> {
+  const slackPct = clamp01(opts.baseSupportTolerance ?? 0.15) * 1; // already 0..0.5
+  const sensitivity = clamp01(opts.confidenceSensitivity ?? 0.7);
   if (!Array.isArray(points) || points.length === 0) {
     throw new Error("Empty point cloud");
   }
@@ -61,8 +73,8 @@ export async function validatePointCloud(points: Point[]): Promise<ValidationRes
   if (baseCount > 0) { bcx /= baseCount; bcz /= baseCount; }
 
   // 3. Centroid x,z must lie inside base footprint (with small slack)
-  const slackX = 0.05 * (xMax - xMin);
-  const slackZ = 0.05 * (zMax - zMin);
+  const slackX = slackPct * (xMax - xMin || 1);
+  const slackZ = slackPct * (zMax - zMin || 1);
   const centroidInside =
     baseCount > 0 &&
     cx >= bxMin - slackX && cx <= bxMax + slackX &&
@@ -99,7 +111,7 @@ export async function validatePointCloud(points: Point[]): Promise<ValidationRes
   const floatScore = floatingMass ? 0.1 : 1;
   const massScore = Math.min(1, baseRatio / 0.20);
   const confidence = Math.max(0, Math.min(1, 0.45 * supportScore + 0.40 * floatScore + 0.15 * massScore));
-  const status: "pass" | "fail" = confidence >= 0.7 && !floatingMass && centroidSupported ? "pass" : "fail";
+  const status: "pass" | "fail" = confidence >= sensitivity && !floatingMass && centroidSupported ? "pass" : "fail";
   const anomaly_detected = floatingMass || !centroidSupported;
 
   // 6. ZK mock hash — deterministic
@@ -131,4 +143,9 @@ export async function validatePointCloud(points: Point[]): Promise<ValidationRes
 
 function round(v: number) {
   return Math.round(v * 1000) / 1000;
+}
+
+function clamp01(v: number) {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(1, v));
 }
