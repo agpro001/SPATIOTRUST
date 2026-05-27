@@ -8,9 +8,17 @@ const PointSchema = z.object({
   z: z.number().finite(),
 });
 
+const OptsSchema = z.object({
+  baseSupportTolerance: z.number().min(0).max(0.5).optional(),
+  confidenceSensitivity: z.number().min(0).max(1).optional(),
+}).optional();
+
 const BodySchema = z.union([
   z.array(PointSchema).min(4).max(200_000),
-  z.object({ points: z.array(PointSchema).min(4).max(200_000) }),
+  z.object({
+    points: z.array(PointSchema).min(4).max(200_000),
+    opts: OptsSchema,
+  }),
 ]);
 
 const corsHeaders = {
@@ -31,9 +39,10 @@ export const Route = createFileRoute("/api/validate-spatial-data")({
             return json({ error: "Invalid point cloud", issues: parsed.error.issues }, 400);
           }
           const points: Point[] = Array.isArray(parsed.data) ? parsed.data : parsed.data.points;
+          const opts = Array.isArray(parsed.data) ? undefined : parsed.data.opts;
           // Simulated multi-agent consensus latency
           await new Promise((r) => setTimeout(r, 2000));
-          const result = await validatePointCloud(points);
+          const result = await validatePointCloud(points, opts);
           return json(result, 200);
         } catch (e) {
           console.error("validate-spatial-data error:", e);
