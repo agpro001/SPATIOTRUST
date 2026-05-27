@@ -6,6 +6,7 @@ import { PointCloudScene } from "@/components/PointCloudScene";
 import { LiveTerminal } from "@/components/LiveTerminal";
 import { StatusBeacon } from "@/components/StatusBeacon";
 import { PublishProofButton } from "@/components/PublishProofButton";
+import { ContactSection } from "@/components/ContactSection";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -62,6 +63,9 @@ function Dashboard() {
           </motion.div>
           <LiveTerminal />
         </div>
+      </div>
+      <div className="-mx-5">
+        <ContactSection />
       </div>
     </motion.div>
   );

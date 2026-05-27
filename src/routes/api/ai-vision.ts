@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { visionToJson } from "@/lib/aiFallback";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,39 +26,18 @@ export const Route = createFileRoute("/api/ai-vision")({
         try {
           const { image, mimeType } = (await request.json()) as { image: string; mimeType: string };
           if (!image) return json({ error: "image (base64) required" }, 400);
-          const apiKey = process.env.GEMINI_API_KEY;
-          if (!apiKey) return json({ error: "GEMINI_API_KEY missing on server" }, 500);
+          const geminiKey = process.env.GEMINI_API_KEY;
+          const gatewayKey = process.env.LOVABLE_API_KEY;
+          if (!geminiKey && !gatewayKey) return json({ error: "No AI provider configured" }, 500);
 
-          const body = {
-            contents: [{
-              role: "user",
-              parts: [
-                { text: PROMPT },
-                { inline_data: { mime_type: mimeType || "image/png", data: image } },
-              ],
-            }],
-            generationConfig: {
-              response_mime_type: "application/json",
-              temperature: 0.3,
-              maxOutputTokens: 8192,
-            },
-          };
-
-          const r = await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-              body: JSON.stringify(body),
-            }
-          );
-          if (!r.ok) {
-            const t = await r.text();
-            console.error("Gemini vision error", r.status, t);
-            return json({ error: `Gemini vision error: ${r.status}` }, 500);
-          }
-          const data = (await r.json()) as any;
-          const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+          const v = await visionToJson({
+            prompt: PROMPT,
+            imageBase64: image,
+            mimeType,
+            geminiKey,
+            gatewayKey,
+          });
+          const text = v.raw;
           // Strip any accidental code fences
           const cleaned = text.trim().replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
           let parsed: any;
@@ -73,7 +53,7 @@ export const Route = createFileRoute("/api/ai-vision")({
           if (points.length < 20) {
             return json({ error: "Vision model did not return enough points" }, 500);
           }
-          return json({ points, description: parsed.description ?? "" }, 200);
+          return jsonProv({ points, description: parsed.description ?? "" }, 200, v.provider);
         } catch (e) {
           console.error(e);
           return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
@@ -86,5 +66,17 @@ export const Route = createFileRoute("/api/ai-vision")({
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
     status, headers: { "Content-Type": "application/json", ...corsHeaders },
+  });
+}
+
+function jsonProv(body: unknown, status: number, provider: string) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "x-oracle-provider": provider,
+      "Access-Control-Expose-Headers": "x-oracle-provider",
+      ...corsHeaders,
+    },
   });
 }

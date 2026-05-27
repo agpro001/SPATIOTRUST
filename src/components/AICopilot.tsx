@@ -164,7 +164,7 @@ export function AICopilot() {
               <div className="flex items-center gap-2">
                 <Bot className="size-4 text-primary" />
                 <span className="font-display font-semibold text-sm">Oracle Assistant</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">gemini · streaming</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">ai mesh · streaming</span>
               </div>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="size-4" />

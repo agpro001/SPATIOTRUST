@@ -1,117 +1,133 @@
-# SpatioTrust — Homepage, Gemini AI, Universal Ingestion
+# SpatioTrust — Upgrade Plan
 
-## 1. Routing changes
+## 1. API key diagnosis
+
+The Gemini key is set (`GEMINI_API_KEY` present) but `/api/ai-chat` returns **HTTP 429** — the key is valid, it's just rate-limited / out of free-tier quota. Fix:
+
+- Keep your Gemini key as the **primary** provider.
+- On any `429 / 402 / 503` from Gemini, **automatically fall back** to **Lovable AI Gateway** (`google/gemini-3-flash-preview`) using `LOVABLE_API_KEY`. Same fallback in `/api/ai-chat` and `/api/ai-vision`.
+- Surface which provider answered in the response header `x-oracle-provider` so the UI can show a tiny "fallback" badge.
+
+## 2. Strip every "Lovable" mention from user-visible code
+
+- Rename the AI gateway helper to `AI Mesh` in all UI strings, comments, READMEs, terminal output, sidebar, and copilot tooltips.
+- Replace "powered by Lovable AI" / "Lovable Cloud" copy with "Powered by SpatioTrust AI Mesh".
+- `LOVABLE_API_KEY` stays as the env var (platform-managed), but never referenced in UI text.
+- Server route comments, `backend/README.md`, and `.lovable/plan.md` get the same scrub (file kept, content rewritten as `spec.md`).
+
+## 3. Animated brand logo
+
+New `src/components/BrandLogo.tsx`:
+
+- SVG hex-shield with an orbiting node-ring and a pulsing core dot.
+- Two modes: `compact` (header) and `hero` (landing hero, animated draw-in + continuous slow rotation).
+- Replaces the current `Shield` lucide icon in `LandingHeader`, `Sidebar`, footer, and favicon.
+
+## 4. AI Copilot orb on the landing page
+
+Currently `AICopilot` only mounts inside `/app`. Promote it so it appears on **both** `/` and `/app` with identical 3D icosahedron animation, streaming chat, and quick-prompts. Mount it in `__root.tsx` so it's global.
+
+## 5. Contact section (bottom of `/` and `/app`)
+
+New `src/components/ContactSection.tsx`:
+
+- 3D rotating torus-knot background (react-three-fiber, bloom).
+- Three animated cards with brand SVG icons (Email, Instagram, X) — hover tilts in 3D, icons morph/fill, framer-motion `whileInView` cascade.
+- Links: `mailto:adityagupta1234.in@gmail.com`, `https://instagram.com/agpro001`, `https://x.com/agpro001`.
+- Mounted at end of landing page and at the bottom of `/app` dashboard.
+- Also add Made by Aditya with a smooth 3d motion graphics kinetic text animation.
+- Add motion graphics kinetic energy 3d animation for all highlights texts.
+
+## 6. Real-time ingestion progress
+
+Extend `useApp` store with `ingestPhase: 'idle' | 'reading' | 'decoding' | 'parsing' | 'vision' | 'rendering' | 'validating' | 'done'` and `ingestPct: number`. `DropZone` shows:
+
+- Animated radial progress ring (SVG `strokeDasharray`).
+- Stage label that morphs with `AnimatePresence`.
+- Per-format hooks emit progress (PLY/OBJ line-by-line, GLB byte-stream, Vision = indeterminate shimmer).
+
+## 7. Native GLB / GLTF parser
+
+New `src/lib/ingestion/parseGlb.ts` using `three/examples/jsm/loaders/GLTFLoader.js` — traverse meshes, sample vertex positions (cap 6000), recenter on origin, push into `Point[]`. Wire into ingestion router (already handles `.ply`, `.obj`). No new npm dep — `three` is already installed.
+
+## 8. Configurable validation thresholds
+
+Add to `useApp` store: `baseSupportTolerance` (0–0.5, default 0.15), `confidenceSensitivity` (0–1, default 0.6). Persist in localStorage. Settings page gains two animated `<Slider>` controls with live preview chips. `src/lib/validator.ts` and `backend/validator.py` read these values (frontend validator reads from store, backend accepts them in POST body).
+
+## 9. Oracle Logs upgrade
+
+Existing `/oracle-logs` route gains:
+
+- Persistent log store (localStorage, capped 200 entries) appended on every validation.
+- Columns: timestamp · scenario · confidence · status · `zk_mock_hash` (click-to-copy) · tx hash if published.
+- CSV export button, filter pills, framer-motion row enter animation.
+
+## 10. Publish Proof — real Sepolia send
+
+Current button is wired to `eth_sendTransaction`. Polish:
+
+- Detect chainId, prompt to switch to Sepolia (0xaa36a7) if wrong.
+- Embed `zk_mock_hash` as transaction `data` (hex-encoded UTF-8).
+- On success, write tx hash back into the Oracle Logs entry and show an etherscan link toast.
+- WalletConnect path uses the same flow.
+
+## 11. Additional AI features (real, not mocked)
+
+All routed through the same Gemini → Lovable AI fallback chain:
+
+- **Anomaly Explainer** — button on a failed validation result that asks the model to point to the exact heuristic that fired, using the JSON context.
+- **Structure Q&A** — ask free-form questions about the loaded point cloud (centroid, bbox, support ratio injected into prompt).
+- **Suggest Fix** — for failed scenes, model proposes structural corrections (e.g. "add support pillar at x=2.1, z=-0.7").
+- **Voice narration toggle** — uses browser `SpeechSynthesis` to read the auto-narrate summary.
+- All three live as chips inside the existing copilot panel so no new floating UI.
+
+## 12. Error sweep
+
+- Suppress `THREE.Clock deprecated` warning by passing `frameloop="demand"` where safe, otherwise leave (it's harmless).
+- Confirm `__root.tsx` still renders `<Outlet />` after copilot mount.
+- Add `errorComponent` + `notFoundComponent` to `/`, `/app`, `/oracle-logs`, `/settings` (currently missing on some).
+- Validate all `<Link to="...">` targets after route changes.
+
+## Technical layout
 
 ```text
-/                → NEW cinematic landing page (no auth, just "Enter Oracle" CTA → /app)
-/app             → current dashboard (moved from /)
-/oracle-logs     → unchanged
-/settings        → unchanged (Gemini key status, WC projectId)
+src/
+  components/
+    BrandLogo.tsx              [new] animated SVG logo
+    ContactSection.tsx         [new] 3D contact block
+    IngestProgress.tsx         [new] radial progress ring
+    AICopilot.tsx              [edit] add AI feature chips, rename gateway
+    landing/LandingHeader.tsx  [edit] swap Shield → BrandLogo
+    Sidebar.tsx                [edit] swap Shield → BrandLogo, rename
+  lib/
+    ingestion/
+      parseGlb.ts              [new] GLTFLoader → Point[]
+      index.ts                 [edit] route .glb/.gltf
+    store.ts                   [edit] ingestPhase, thresholds, logs
+    validator.ts               [edit] threshold params
+    aiFallback.ts              [new] shared Gemini→Lovable wrapper
+  routes/
+    __root.tsx                 [edit] mount AICopilot globally
+    index.tsx                  [edit] BrandLogo hero, ContactSection
+    app.tsx                    [edit] ContactSection at bottom
+    oracle-logs.tsx            [edit] real persisted logs + CSV
+    settings.tsx               [edit] threshold sliders
+    api/
+      ai-chat.ts               [edit] Gemini→Lovable fallback
+      ai-vision.ts             [edit] Gemini→Lovable fallback
+backend/
+  validator.py                 [edit] accept threshold params
+  README.md                    [edit] rebrand
 ```
 
-`src/routes/index.tsx` becomes the landing page. The current dashboard content moves to `src/routes/app.tsx`. The sidebar's "Mission Control" link updates to `/app`. The landing has its own minimal header (logo + single "Launch Oracle" button) — no sidebar.
+No new npm dependencies — `three`, `@react-three/fiber`, `@react-three/drei`, `framer-motion`, `ethers` are already installed.
 
-## 2. Landing page (`/`)
+## Out of scope
 
-Sections, all animated:
+- Publishing real ZK proofs (still a sha-256 commitment, as per original spec).
+- Actual on-chain contract — we send a plain Sepolia tx with `zk_mock_hash` in `data` (already the design).
+- Removing the env var name `LOVABLE_API_KEY` itself — that's a platform-managed key and renaming it would break the gateway.
 
-1. **Hero** — full-viewport. Animated 3D scene behind the headline: a slowly rotating wireframe building made of glowing points (react-three-fiber), with mouse-driven parallax (camera tilts to cursor). Headline "Verify Reality Before You Release Capital." Subhead, two CTAs: **Launch Oracle** (→ `/app`) and **How it works** (scrolls down).
-2. **What it is** — 3-column glass cards (Spatial Ingest / Consensus Validation / ZK Attestation), each card scales+fades in on scroll (framer-motion `whileInView`).
-3. **How it works** — horizontal pipeline diagram with 4 nodes (Ingest → Validate → Attest → Publish). A scroll-driven progress line fills between nodes as the user scrolls (parallax via `useScroll` + `useTransform`).
-4. **Live demo strip** — embedded mini point-cloud viewer that auto-plays the valid vs fraud scenario in a loop, with captioned narration.
-5. **Use cases** — bento grid (DeFi construction loans, insurance claims, supply chain, carbon credits). Tilt-on-hover cards.
-6. **Tech stack & architecture** — diagram + bullets (TanStack Start, Cloudflare Workers, three.js, Gemini, ethers, WalletConnect).
-7. **FAQ** — accordion.
-8. **Final CTA** — repeat "Launch Oracle" button with pulsing glow.
+&nbsp;
 
-Animation toolkit: framer-motion (`motion`, `useScroll`, `useTransform`, `whileInView`, `layoutId`), react-three-fiber for the hero scene, CSS-driven parallax for section backgrounds, button press = scale-tap + ripple, page transitions via `AnimatePresence`.
-
-SEO: route-specific `head()` with title, description, og:image. Single H1 on landing.
-
-## 3. Gemini integration (replaces Lovable AI Gateway)
-
-- User must **revoke the leaked key** and generate a new one. I'll then store it as a server secret `GEMINI_API_KEY`.
-- Rewrite `src/routes/api/ai-chat.ts` to call `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse` with the key in `x-goog-api-key` header. Convert OpenAI-style `{role,content}` history to Gemini's `contents:[{role,parts:[{text}]}]` shape, map `assistant`→`model`. Stream SSE chunks back to the browser unchanged (frontend parses `candidates[0].content.parts[0].text`).
-- The existing `AICopilot.tsx` SSE reader is adjusted for the Gemini chunk shape.
-- A new `src/routes/api/ai-vision.ts` endpoint accepts a base64 image/PDF page + prompt, calls Gemini 2.0 Flash with `inline_data`, and returns a synthesized `Point[]` + textual structural summary (used by the universal uploader, see §4).
-
-## 4. Universal file ingestion
-
-Replace the JSON-only `DropZone` with a multi-format ingestion pipeline. Detection by extension + MIME sniff:
-
-
-| Input                  | Strategy                                                                                                                                                                           |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.json`                | parsed directly (existing path)                                                                                                                                                    |
-| `.csv`, `.txt`, `.xyz` | split per-line, expect 3 numeric cols → `{x,y,z}`                                                                                                                                  |
-| `.ply` (ASCII)         | header parse → vertex section → points                                                                                                                                             |
-| `.obj`                 | extract `v x y z` lines                                                                                                                                                            |
-| `.glb`/`.gltf`         | use `three/examples/jsm/loaders/GLTFLoader` to extract mesh vertices                                                                                                               |
-| `.png`/`.jpg`/`.webp`  | POST to `/api/ai-vision` with prompt "extract a representative {x,y,z} point cloud of the visible structure, ~800 points, ground at y=0, return JSON only" → Gemini returns points |
-| `.pdf`                 | client-side render first page to canvas (pdfjs-dist) → same vision path                                                                                                            |
-| anything else          | toast: "Unsupported, attempting AI inference" → vision path on a thumbnail if possible, else error                                                                                 |
-
-
-Animated upload UX:
-
-- Drag-over: dashed border morphs + neon glow pulse.
-- During parse: progress ring with phase labels ("decoding…", "extracting vertices…", "asking Gemini Vision…").
-- On success: points "rain" into the 3D viewport with staggered framer-motion entrance.
-- On AI-inferred clouds: a small "AI-inferred" badge appears with a tooltip explaining the structure came from Gemini Vision, not direct geometry.
-
-## 5. Additional animations sweep
-
-- Buttons: tap-scale + radial ripple (single reusable `<FxButton>` wrapper).
-- Cards: 3D tilt on hover (CSS `perspective` + framer-motion `useMotionValue`).
-- Section transitions: `whileInView` fade/slide.
-- 3D scene: bloom, slow auto-rotate, mouse-parallax, anomaly pulse already present.
-- Route change: `AnimatePresence` cross-fade between `/` and `/app`.
-- Sidebar: items slide in stagger on mount; active item gets `layoutId` underline.
-- Terminal lines: per-line typewriter.
-- Status beacon: morph between idle → scanning → verified/fraud states.
-
-## 6. Files to add / change
-
-```text
-New:
-  src/routes/app.tsx                    (moved dashboard)
-  src/routes/index.tsx                  (rewritten as landing)
-  src/components/landing/Hero3D.tsx
-  src/components/landing/PipelineScroll.tsx
-  src/components/landing/UseCaseBento.tsx
-  src/components/landing/FaqAccordion.tsx
-  src/components/landing/LandingHeader.tsx
-  src/components/FxButton.tsx
-  src/components/TiltCard.tsx
-  src/lib/ingestion/index.ts            (dispatcher)
-  src/lib/ingestion/parseJson.ts
-  src/lib/ingestion/parseCsvXyz.ts
-  src/lib/ingestion/parsePly.ts
-  src/lib/ingestion/parseObj.ts
-  src/lib/ingestion/parseGltf.ts
-  src/lib/ingestion/visionInfer.ts      (calls /api/ai-vision)
-  src/routes/api/ai-vision.ts
-
-Edited:
-  src/routes/api/ai-chat.ts             (Gemini SSE instead of Lovable)
-  src/components/AICopilot.tsx          (Gemini chunk shape)
-  src/components/DropZone.tsx           (universal ingestion + animations)
-  src/components/Sidebar.tsx            (link → /app, hide on /)
-  src/routes/__root.tsx                 (conditional chrome: hide sidebar on /)
-  src/routes/settings.tsx               (Gemini key status row)
-
-Deps to add: pdfjs-dist
-(three, framer-motion, @react-three/drei already installed.)
-```
-
-## 7. Open question — only one
-
-The Gemini key you pasted is now public. **Please revoke it in Google AI Studio**, generate a new one, and confirm you want me to store the new one as `GEMINI_API_KEY` (server secret). I'll request it via the secrets prompt after you approve this plan — do NOT paste the new key in chat.
-
-All other choices (move dashboard to `/app`, no auth on landing, vision fallback for unknown files) I'll proceed with unless you say otherwise.
-
-Build the Oracle Logs page to show searchable validation history with timestamps, input scenario names, and pass/fail status.Add automated tests that confirm the TS validator and Python reference produce the same zk_mock_hash for both valid and fraudulent datasets.Add an explanation panel that breaks down the AABB/gravity checks and highlights the specific points that triggered pass or fail.Implement a proof receipt viewer that fetches the attestation transaction receipt and displays relevant on-chain events.
-
-Use smooth 3d realistic animation for everything.
-
-Every thing must working really properly no simulation.
+All must work properly correctly and Really.
