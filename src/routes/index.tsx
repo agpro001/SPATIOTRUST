@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { ArrowRight, ChevronDown, Boxes, Shield, Sparkles, Zap, Layers, Cpu, Globe } from "lucide-react";
+import { ArrowRight, ChevronDown, Boxes, Sparkles, Zap, Layers, Cpu, Globe, Shield } from "lucide-react";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { Hero3D } from "@/components/landing/Hero3D";
 import { PipelineScroll } from "@/components/landing/PipelineScroll";
@@ -9,6 +9,8 @@ import { UseCaseBento } from "@/components/landing/UseCaseBento";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
 import { FxButton } from "@/components/FxButton";
 import { TiltCard } from "@/components/TiltCard";
+import { ContactSection } from "@/components/ContactSection";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +35,7 @@ function Landing() {
       <Stack />
       <FaqAccordion />
       <FinalCta />
+      <ContactSection />
       <Footer />
     </div>
   );
@@ -226,9 +229,9 @@ function Footer() {
     <footer className="border-t border-border/40 py-10 px-5 md:px-10 text-sm text-muted-foreground">
       <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Shield className="size-4 text-primary" />
+          <BrandLogo size={22} />
           <span className="font-display font-semibold text-foreground">SpatioTrust</span>
-          <span className="font-mono text-[10px] uppercase tracking-widest">v0.9.3</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest">v0.9.4</span>
         </div>
         <div className="font-mono text-[11px]">© {new Date().getFullYear()} · built for the open web</div>
       </div>

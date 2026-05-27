@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, ScrollText, Settings, Shield } from "lucide-react";
+import { Activity, ScrollText, Settings } from "lucide-react";
 import { motion } from "framer-motion";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const items = [
   { to: "/app", label: "Mission Control", icon: Activity },
@@ -13,14 +14,7 @@ export function Sidebar() {
   return (
     <aside className="w-60 shrink-0 border-r border-border bg-sidebar/80 backdrop-blur-xl flex flex-col">
       <div className="px-5 py-5 border-b border-border flex items-center gap-3">
-        <motion.div
-          initial={{ rotate: -20, opacity: 0 }}
-          animate={{ rotate: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 220 }}
-          className="size-9 rounded-md grid place-items-center bg-primary/15 border border-primary/40 shadow-[0_0_22px_-6px_var(--primary-glow)]"
-        >
-          <Shield className="size-5 text-primary" />
-        </motion.div>
+        <BrandLogo size={36} />
         <div>
           <div className="font-display font-semibold tracking-tight text-foreground">SpatioTrust</div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

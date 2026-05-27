@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Decentralized 3D geometry validation with ZK-proof attestation for DeFi." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@agpro001" },
     ],
     links: [
       {
@@ -147,9 +147,9 @@ function RootComponent() {
               <Outlet />
             </main>
           </div>
-          <AICopilot />
         </div>
       )}
+        <AICopilot />
         <Toaster
           theme="dark"
           position="bottom-left"
