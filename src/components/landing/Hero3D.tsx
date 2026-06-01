@@ -1,15 +1,19 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
+import { Float, PerformanceMonitor } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { dpr, perfTier, isLowPower } from "@/lib/perf";
 
 /** Generates a building-shaped point cloud (procedural). */
 function buildingPoints(): Float32Array {
   const out: number[] = [];
   const w = 3, d = 3, h = 4.5;
+  const wallN = perfTier === "low" ? 700 : perfTier === "mid" ? 1200 : 1800;
+  const roofN = perfTier === "low" ? 200 : perfTier === "mid" ? 350 : 500;
+  const baseN = perfTier === "low" ? 280 : perfTier === "mid" ? 480 : 700;
   // Walls
-  for (let i = 0; i < 1800; i++) {
+  for (let i = 0; i < wallN; i++) {
     const face = Math.floor(Math.random() * 4);
     const u = Math.random();
     const y = Math.random() * h;
@@ -21,11 +25,11 @@ function buildingPoints(): Float32Array {
     out.push(x, y, z);
   }
   // Roof
-  for (let i = 0; i < 500; i++) {
+  for (let i = 0; i < roofN; i++) {
     out.push(-w/2 + Math.random() * w, h + Math.random() * 0.05, -d/2 + Math.random() * d);
   }
   // Base
-  for (let i = 0; i < 700; i++) {
+  for (let i = 0; i < baseN; i++) {
     out.push(-w/2 + Math.random() * w, 0, -d/2 + Math.random() * d);
   }
   return new Float32Array(out);
@@ -69,7 +73,8 @@ function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: num
 function Particles() {
   const ref = useRef<THREE.Points>(null);
   const positions = useMemo(() => {
-    const arr = new Float32Array(600 * 3);
+    const n = perfTier === "low" ? 220 : perfTier === "mid" ? 400 : 600;
+    const arr = new Float32Array(n * 3);
     for (let i = 0; i < arr.length; i++) arr[i] = (Math.random() - 0.5) * 25;
     return arr;
   }, []);
@@ -89,16 +94,25 @@ function Particles() {
 
 export function Hero3D() {
   const mouse = useRef({ x: 0, y: 0 });
+  const [maxDpr, setMaxDpr] = useState(dpr()[1]);
   return (
     <div
-      className="absolute inset-0"
+      className="absolute inset-0 gpu-layer"
       onPointerMove={(e) => {
         const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
         mouse.current.x = (e.clientX - r.left) / r.width - 0.5;
         mouse.current.y = (e.clientY - r.top) / r.height - 0.5;
       }}
     >
-      <Canvas dpr={[1, 2]} camera={{ position: [6, 3, 9], fov: 50 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas
+        dpr={[1, maxDpr]}
+        camera={{ position: [6, 3, 9], fov: 50 }}
+        gl={{ antialias: !isLowPower, alpha: true, powerPreference: "high-performance" }}
+      >
+        <PerformanceMonitor
+          onDecline={() => setMaxDpr((d) => Math.max(1, d - 0.25))}
+          onIncline={() => setMaxDpr((d) => Math.min(dpr()[1], d + 0.1))}
+        />
         <color attach="background" args={["#06090f"]} />
         <fog attach="fog" args={["#06090f", 14, 40]} />
         <ambientLight intensity={0.4} />
@@ -107,9 +121,11 @@ export function Hero3D() {
           <Building mouse={mouse} />
         </Float>
         <Particles />
-        <EffectComposer>
-          <Bloom intensity={1.0} luminanceThreshold={0.4} luminanceSmoothing={0.2} mipmapBlur />
-        </EffectComposer>
+        {!isLowPower && (
+          <EffectComposer>
+            <Bloom intensity={1.0} luminanceThreshold={0.4} luminanceSmoothing={0.2} mipmapBlur />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );
