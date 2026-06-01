@@ -1,6 +1,6 @@
 /**
  * Shared helper: try the user's Gemini API key first; on quota/rate/credit
- * failures fall through to the Lovable AI Gateway (still Gemini under the
+ * failures fall through to the managed AI Gateway (still Gemini under the
  * hood, but on the platform-managed key).
  *
  * Returns a Response-like envelope with the upstream stream/body and a
@@ -65,7 +65,7 @@ export async function streamChat(opts: {
     }
   }
 
-  // 2. Fallback: Lovable AI Gateway (OpenAI-compatible)
+  // 2. Fallback: managed AI Gateway (OpenAI-compatible)
   if (!gatewayKey) {
     throw new Error("Both Gemini and AI Mesh providers are unavailable");
   }
