@@ -21,12 +21,16 @@ def validate():
     if request.method == "OPTIONS":
         return ("", 204)
     body = request.get_json(force=True)
-    points = body if isinstance(body, list) else body.get("points", [])
+    if isinstance(body, list):
+        points, opts = body, None
+    else:
+        points = body.get("points", [])
+        opts = body.get("opts") or None
     if not isinstance(points, list) or not points:
         return jsonify({"error": "Invalid point cloud"}), 400
     # simulated multi-agent consensus latency
     time.sleep(2)
-    return jsonify(validate_point_cloud(points))
+    return jsonify(validate_point_cloud(points, opts))
 
 @app.route("/api/mock/<scenario>")
 def mock(scenario):
