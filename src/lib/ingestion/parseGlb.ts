@@ -1,9 +1,10 @@
 import type { Point } from "@/lib/validator";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { pointCap } from "@/lib/perf";
 
 /** Parse a GLB / GLTF and sample mesh vertex positions into a point cloud. */
-export async function parseGlbFile(file: File, cap = 6000): Promise<Point[]> {
+export async function parseGlbFile(file: File, cap = pointCap(6000)): Promise<Point[]> {
   const buf = await file.arrayBuffer();
   const loader = new GLTFLoader();
   const gltf = await loader.parseAsync(buf, "");
