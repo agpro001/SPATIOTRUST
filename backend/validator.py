@@ -6,15 +6,31 @@ Mirrors src/lib/validator.ts byte-for-byte in spirit:
   3) Centroid (x,z) must lie inside base footprint AND base mass >= 12%
   4) Floating-mass scan over 10 y-slices (>8% mass with 0 directly below = anomaly)
   5) Weighted confidence + zk_mock_hash = sha256(canonical_json + status)
+
+Accepts optional opts:
+  - base_support_tolerance (0..0.5, default 0.15) — extra slack around the
+    base footprint when checking centroid containment.
+  - confidence_sensitivity (0..1, default 0.6) — raises/lowers the pass
+    threshold and reweights the score (higher = stricter).
 """
 import hashlib, json, math, time
 
 def _round(v: float) -> float:
     return round(v, 3)
 
-def validate_point_cloud(points):
+def _lerp(a: float, b: float, t: float) -> float:
+    return a + (b - a) * max(0.0, min(1.0, t))
+
+def validate_point_cloud(points, opts=None):
     if not points:
         raise ValueError("Empty point cloud")
+    opts = opts or {}
+    base_support_tolerance = float(opts.get("base_support_tolerance",
+                                            opts.get("baseSupportTolerance", 0.15)))
+    confidence_sensitivity = float(opts.get("confidence_sensitivity",
+                                            opts.get("confidenceSensitivity", 0.6)))
+    base_support_tolerance = max(0.0, min(0.5, base_support_tolerance))
+    confidence_sensitivity = max(0.0, min(1.0, confidence_sensitivity))
 
     n = len(points)
     x_min = y_min = z_min = math.inf
@@ -45,8 +61,8 @@ def validate_point_cloud(points):
     if base_count:
         bcx /= base_count; bcz /= base_count
 
-    slack_x = 0.05 * (x_max - x_min)
-    slack_z = 0.05 * (z_max - z_min)
+    slack_x = base_support_tolerance * (x_max - x_min)
+    slack_z = base_support_tolerance * (z_max - z_min)
     centroid_inside = (
         base_count > 0
         and bx_min - slack_x <= cx <= bx_max + slack_x
@@ -75,8 +91,13 @@ def validate_point_cloud(points):
     support_score = 1.0 if centroid_supported else 0.2
     float_score = 0.1 if floating_mass else 1.0
     mass_score = min(1.0, base_ratio / 0.20)
-    confidence = max(0.0, min(1.0, 0.45 * support_score + 0.40 * float_score + 0.15 * mass_score))
-    status = "pass" if confidence >= 0.7 and not floating_mass and centroid_supported else "fail"
+    w_sup = _lerp(0.40, 0.55, confidence_sensitivity)
+    w_flt = _lerp(0.45, 0.30, confidence_sensitivity)
+    w_mas = _lerp(0.15, 0.15, confidence_sensitivity)
+    confidence = max(0.0, min(1.0,
+        w_sup * support_score + w_flt * float_score + w_mas * mass_score))
+    pass_cutoff = _lerp(0.55, 0.80, confidence_sensitivity)
+    status = "pass" if confidence >= pass_cutoff and not floating_mass and centroid_supported else "fail"
     anomaly_detected = floating_mass or not centroid_supported
 
     sorted_pts = sorted(points, key=lambda p: (p["x"], p["y"], p["z"]))
@@ -88,6 +109,11 @@ def validate_point_cloud(points):
         "confidence": round(confidence, 3),
         "anomaly_detected": anomaly_detected,
         "zk_mock_hash": "0x" + digest,
+        "thresholds": {
+            "baseSupportTolerance": base_support_tolerance,
+            "confidenceSensitivity": confidence_sensitivity,
+            "passCutoff": round(pass_cutoff, 3),
+        },
         "metrics": {
             "total": n,
             "baseCount": base_count,
