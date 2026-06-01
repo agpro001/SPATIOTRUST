@@ -4,7 +4,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Mail } from "lucide-react";
 import * as THREE from "three";
-import { dpr, isLowPower, geomDetail } from "@/lib/perf";
+import { dpr, isLowPower } from "@/lib/perf";
 
 /* Subtle rotating torus knot in the background */
 function Knot() {
