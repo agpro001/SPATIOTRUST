@@ -225,6 +225,27 @@
   .shake-once { animation: screen-shake 0.5s linear 1; }
 }
 
+@layer utilities {
+  /* Hint the compositor for heavy animated wrappers without changing visuals. */
+  .gpu-layer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  /* Skip layout/paint of off-screen sections on supporting browsers. */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 600px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
 @theme inline {
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
