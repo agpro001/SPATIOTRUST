@@ -1,133 +1,93 @@
-# SpatioTrust — Upgrade Plan
 
-## 1. API key diagnosis
+## Goal
 
-The Gemini key is set (`GEMINI_API_KEY` present) but `/api/ai-chat` returns **HTTP 429** — the key is valid, it's just rate-limited / out of free-tier quota. Fix:
+Make the site smooth on low-end devices without removing any animation, then ship four concrete feature upgrades.
 
-- Keep your Gemini key as the **primary** provider.
-- On any `429 / 402 / 503` from Gemini, **automatically fall back** to **Lovable AI Gateway** (`google/gemini-3-flash-preview`) using `LOVABLE_API_KEY`. Same fallback in `/api/ai-chat` and `/api/ai-vision`.
-- Surface which provider answered in the response header `x-oracle-provider` so the UI can show a tiny "fallback" badge.
+---
 
-## 2. Strip every "Lovable" mention from user-visible code
+## 1. Performance pass (keep all animations, just make them cheap)
 
-- Rename the AI gateway helper to `AI Mesh` in all UI strings, comments, READMEs, terminal output, sidebar, and copilot tooltips.
-- Replace "powered by Lovable AI" / "Lovable Cloud" copy with "Powered by SpatioTrust AI Mesh".
-- `LOVABLE_API_KEY` stays as the env var (platform-managed), but never referenced in UI text.
-- Server route comments, `backend/README.md`, and `.lovable/plan.md` get the same scrub (file kept, content rewritten as `spec.md`).
+Root causes of the current lag (from the codebase):
+- Multiple `<Canvas>` instances mounted at once (Hero3D, AICopilot orb, ContactSection torus, PointCloudScene) all rendering every frame at full devicePixelRatio.
+- Framer-motion `whileInView` cascades + parallax scroll listeners firing on every scroll event.
+- Re-renders of `AICopilot` chat panel on every streamed token causing the full markdown tree to re-render.
 
-## 3. Animated brand logo
+Fixes (no animation removed, just cheaper):
 
-New `src/components/BrandLogo.tsx`:
+- **Three.js fiber tuning** on every `<Canvas>`:
+  - `dpr={[1, 1.5]}` (cap pixel ratio)
+  - `frameloop="demand"` for the AICopilot orb and ContactSection torus, with a manual `invalidate()` tick on tone/hover changes; `frameloop="always"` kept only for Hero3D.
+  - `gl={{ antialias: false, powerPreference: "high-performance" }}` and `<PerformanceMonitor>` from `@react-three/drei` to auto-drop dpr on weak GPUs.
+  - Pause off-screen canvases via `IntersectionObserver` (set `frameloop="never"` when not visible).
+- **Detect low-power device** once in `src/lib/perf.ts` (`navigator.hardwareConcurrency <= 4 || matchMedia('(prefers-reduced-motion: reduce)').matches || /Android.*Mobile/.test(ua)`). Export `isLowPower` + `tier: 'low' | 'mid' | 'high'`.
+  - Low tier: drop point-cloud sample cap from 6000 → 2500 in `parseGlb.ts`; reduce `icosahedronGeometry` detail from 1 → 0; disable torus knot rotation speed by half; clamp framer-motion spring `stiffness` lower.
+- **Scroll/parallax**: replace per-`scroll` listeners with `useScroll` + `useTransform` (passive, already rAF-batched) where not already used; wrap parallax sections in `will-change: transform` and `content-visibility: auto` so off-screen sections skip paint.
+- **AICopilot streaming**: memoize each message with `React.memo` keyed by index; only the last message re-renders during streaming. Wrap markdown in a `useMemo` keyed on content.
+- **Bundle/runtime**: lazy-load `Hero3D`, `ContactSection`, `PointCloudScene`, and `AICopilot` Canvas via `React.lazy` + `Suspense` with a CSS-only placeholder that preserves layout (no CLS).
+- **CSS**: add `transform: translateZ(0)` and `backface-visibility: hidden` to the heavy animated wrappers; switch box-shadow-heavy hover transitions to `filter: drop-shadow` where possible.
 
-- SVG hex-shield with an orbiting node-ring and a pulsing core dot.
-- Two modes: `compact` (header) and `hero` (landing hero, animated draw-in + continuous slow rotation).
-- Replaces the current `Shield` lucide icon in `LandingHeader`, `Sidebar`, footer, and favicon.
+Acceptance: First contentful paint unchanged or better; scrolling the landing page stays >50 fps on a 4-core throttled CPU profile; no animation visually removed.
 
-## 4. AI Copilot orb on the landing page
+---
 
-Currently `AICopilot` only mounts inside `/app`. Promote it so it appears on **both** `/` and `/app` with identical 3D icosahedron animation, streaming chat, and quick-prompts. Mount it in `__root.tsx` so it's global.
+## 2. Backend `validator.py` — accept threshold params
 
-## 5. Contact section (bottom of `/` and `/app`)
+Update `backend/validator.py`:
+- Change `validate_point_cloud(points, opts=None)`:
+  - `base_support_tolerance` (default 0.05) replaces the hard-coded `0.05 * (x_max - x_min)` slack multiplier.
+  - `confidence_sensitivity` (default 0.6) reweights the final score: `confidence = lerp(0.45,0.65, s)*support + lerp(0.40,0.25, s)*float + lerp(0.15,0.10, s)*mass` and the pass cutoff becomes `0.5 + 0.3 * s`.
+- Update `backend/app.py` (Flask handler) to read `opts` from JSON body and forward.
+- Keep stdout CLI shim working (`opts` optional).
 
-New `src/components/ContactSection.tsx`:
+The TS validator + `/api/validate-spatial-data` already pass `opts` — this brings parity.
 
-- 3D rotating torus-knot background (react-three-fiber, bloom).
-- Three animated cards with brand SVG icons (Email, Instagram, X) — hover tilts in 3D, icons morph/fill, framer-motion `whileInView` cascade.
-- Links: `mailto:adityagupta1234.in@gmail.com`, `https://instagram.com/agpro001`, `https://x.com/agpro001`.
-- Mounted at end of landing page and at the bottom of `/app` dashboard.
-- Also add Made by Aditya with a smooth 3d motion graphics kinetic text animation.
-- Add motion graphics kinetic energy 3d animation for all highlights texts.
+---
 
-## 6. Real-time ingestion progress
+## 3. AI Copilot — anomaly-explainer + suggest-fix chips
 
-Extend `useApp` store with `ingestPhase: 'idle' | 'reading' | 'decoding' | 'parsing' | 'vision' | 'rendering' | 'validating' | 'done'` and `ingestPct: number`. `DropZone` shows:
+In `src/components/AICopilot.tsx`:
+- Add two new quick-prompt chips next to the existing ones, only visible when `result` exists:
+  - **"Explain anomaly"** → sends a structured prompt: "Given the validation context, identify which heuristic (base support, centroid alignment, floating mass) triggered and explain in 3 bullets why."
+  - **"Suggest a fix"** → "Recommend 3 concrete spatial corrections (recenter mass, add base footprint, remove floating slice) that would flip this from fail to pass. Reference metrics from the context."
+- Both call the existing `send()` with a server-side flag `mode: 'explainer' | 'fix'` so `/api/ai-chat` can append a stricter system suffix (bulleted output, max 120 words).
+- Chips animate in with `AnimatePresence` + `whileTap scale 0.9`, color-coded (amber for explain, emerald for fix).
+- Result tone (`ok`/`fail`) drives chip visibility — "Suggest a fix" only shows on fail.
 
-- Animated radial progress ring (SVG `strokeDasharray`).
-- Stage label that morphs with `AnimatePresence`.
-- Per-format hooks emit progress (PLY/OBJ line-by-line, GLB byte-stream, Vision = indeterminate shimmer).
+---
 
-## 7. Native GLB / GLTF parser
+## 4. Oracle Logs — filter pills + CSV export
 
-New `src/lib/ingestion/parseGlb.ts` using `three/examples/jsm/loaders/GLTFLoader.js` — traverse meshes, sample vertex positions (cap 6000), recenter on origin, push into `Point[]`. Wire into ingestion router (already handles `.ply`, `.obj`). No new npm dep — `three` is already installed.
+In `src/routes/oracle-logs.tsx`:
 
-## 8. Configurable validation thresholds
+**Filter pills row** above the table:
+- Status: All / Pass / Fail
+- Anomaly: All / Detected / Clean
+- Scenario: dynamically built from `[...new Set(logs.map(l => l.scenario))]`
+- Pills are framer-motion buttons with `layoutId` underline that slides between active selections.
+- Filtering is `useMemo` over `logs`; empty state message updates when filters yield 0 rows.
 
-Add to `useApp` store: `baseSupportTolerance` (0–0.5, default 0.15), `confidenceSensitivity` (0–1, default 0.6). Persist in localStorage. Settings page gains two animated `<Slider>` controls with live preview chips. `src/lib/validator.ts` and `backend/validator.py` read these values (frontend validator reads from store, backend accepts them in POST body).
+**CSV export button** (top-right):
+- Builds CSV from the currently filtered list with columns: `timestamp, scenario, status, confidence, anomaly_detected, zk_mock_hash, tx_hash`.
+- Escapes quotes/newlines; uses `Blob` + `URL.createObjectURL` + hidden `<a download>` — no new deps.
+- Filename: `spatiotrust-logs-{yyyymmdd-hhmm}.csv`.
+- Button has a subtle press animation and a toast confirmation via existing `sonner`.
 
-## 9. Oracle Logs upgrade
+---
 
-Existing `/oracle-logs` route gains:
+## Technical notes
 
-- Persistent log store (localStorage, capped 200 entries) appended on every validation.
-- Columns: timestamp · scenario · confidence · status · `zk_mock_hash` (click-to-copy) · tx hash if published.
-- CSV export button, filter pills, framer-motion row enter animation.
+- No new npm dependencies.
+- `frameloop="demand"` requires `useThree().invalidate()` calls on state change — wired inside each `Core`/torus component.
+- `PerformanceMonitor` is already part of `@react-three/drei` (installed).
+- `perf.ts` runs only client-side (guarded by `typeof window !== 'undefined'`) so SSR is unaffected.
+- Backend change is backward-compatible (opts optional).
 
-## 10. Publish Proof — real Sepolia send
+## Files touched
 
-Current button is wired to `eth_sendTransaction`. Polish:
-
-- Detect chainId, prompt to switch to Sepolia (0xaa36a7) if wrong.
-- Embed `zk_mock_hash` as transaction `data` (hex-encoded UTF-8).
-- On success, write tx hash back into the Oracle Logs entry and show an etherscan link toast.
-- WalletConnect path uses the same flow.
-
-## 11. Additional AI features (real, not mocked)
-
-All routed through the same Gemini → Lovable AI fallback chain:
-
-- **Anomaly Explainer** — button on a failed validation result that asks the model to point to the exact heuristic that fired, using the JSON context.
-- **Structure Q&A** — ask free-form questions about the loaded point cloud (centroid, bbox, support ratio injected into prompt).
-- **Suggest Fix** — for failed scenes, model proposes structural corrections (e.g. "add support pillar at x=2.1, z=-0.7").
-- **Voice narration toggle** — uses browser `SpeechSynthesis` to read the auto-narrate summary.
-- All three live as chips inside the existing copilot panel so no new floating UI.
-
-## 12. Error sweep
-
-- Suppress `THREE.Clock deprecated` warning by passing `frameloop="demand"` where safe, otherwise leave (it's harmless).
-- Confirm `__root.tsx` still renders `<Outlet />` after copilot mount.
-- Add `errorComponent` + `notFoundComponent` to `/`, `/app`, `/oracle-logs`, `/settings` (currently missing on some).
-- Validate all `<Link to="...">` targets after route changes.
-
-## Technical layout
-
-```text
-src/
-  components/
-    BrandLogo.tsx              [new] animated SVG logo
-    ContactSection.tsx         [new] 3D contact block
-    IngestProgress.tsx         [new] radial progress ring
-    AICopilot.tsx              [edit] add AI feature chips, rename gateway
-    landing/LandingHeader.tsx  [edit] swap Shield → BrandLogo
-    Sidebar.tsx                [edit] swap Shield → BrandLogo, rename
-  lib/
-    ingestion/
-      parseGlb.ts              [new] GLTFLoader → Point[]
-      index.ts                 [edit] route .glb/.gltf
-    store.ts                   [edit] ingestPhase, thresholds, logs
-    validator.ts               [edit] threshold params
-    aiFallback.ts              [new] shared Gemini→Lovable wrapper
-  routes/
-    __root.tsx                 [edit] mount AICopilot globally
-    index.tsx                  [edit] BrandLogo hero, ContactSection
-    app.tsx                    [edit] ContactSection at bottom
-    oracle-logs.tsx            [edit] real persisted logs + CSV
-    settings.tsx               [edit] threshold sliders
-    api/
-      ai-chat.ts               [edit] Gemini→Lovable fallback
-      ai-vision.ts             [edit] Gemini→Lovable fallback
-backend/
-  validator.py                 [edit] accept threshold params
-  README.md                    [edit] rebrand
-```
-
-No new npm dependencies — `three`, `@react-three/fiber`, `@react-three/drei`, `framer-motion`, `ethers` are already installed.
-
-## Out of scope
-
-- Publishing real ZK proofs (still a sha-256 commitment, as per original spec).
-- Actual on-chain contract — we send a plain Sepolia tx with `zk_mock_hash` in `data` (already the design).
-- Removing the env var name `LOVABLE_API_KEY` itself — that's a platform-managed key and renaming it would break the gateway.
-
-&nbsp;
-
-All must work properly correctly and Really.
+- `src/lib/perf.ts` (new)
+- `src/components/landing/Hero3D.tsx`, `src/components/AICopilot.tsx`, `src/components/ContactSection.tsx`, `src/components/PointCloudScene.tsx` (Canvas tuning, memoization, chips)
+- `src/routes/index.tsx`, `src/routes/app.tsx` (lazy-load heavy sections)
+- `src/routes/oracle-logs.tsx` (filters + CSV)
+- `src/routes/api/ai-chat.ts` (mode-aware system suffix)
+- `src/styles.css` (will-change / content-visibility utilities)
+- `backend/validator.py`, `backend/app.py` (threshold params)

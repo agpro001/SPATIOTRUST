@@ -4,6 +4,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Mail } from "lucide-react";
 import * as THREE from "three";
+import { dpr, isLowPower } from "@/lib/perf";
 
 /* Subtle rotating torus knot in the background */
 function Knot() {
@@ -19,7 +20,7 @@ function Knot() {
       <pointLight position={[3, 3, 3]} intensity={2.2} color="#7dd3fc" />
       <pointLight position={[-3, -2, -2]} intensity={1.4} color="#a78bfa" />
       <mesh ref={ref} scale={1.4}>
-        <torusKnotGeometry args={[1, 0.32, 220, 32]} />
+        <torusKnotGeometry args={[1, 0.32, isLowPower ? 96 : 220, isLowPower ? 16 : 32]} />
         <meshStandardMaterial
           color="#0ea5e9"
           emissive="#0ea5e9"
@@ -29,9 +30,11 @@ function Knot() {
           transparent
         />
       </mesh>
-      <EffectComposer>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} />
-      </EffectComposer>
+      {!isLowPower && (
+        <EffectComposer>
+          <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.4} />
+        </EffectComposer>
+      )}
     </>
   );
 }
@@ -75,8 +78,12 @@ export function ContactSection() {
       className="relative py-24 px-5 md:px-10 border-t border-border/40 overflow-hidden"
     >
       {/* 3D background */}
-      <div className="absolute inset-0 -z-0 opacity-60 pointer-events-none">
-        <Canvas camera={{ position: [0, 0, 5], fov: 50 }} dpr={[1, 1.8]}>
+      <div className="absolute inset-0 -z-0 opacity-60 pointer-events-none gpu-layer">
+        <Canvas
+          camera={{ position: [0, 0, 5], fov: 50 }}
+          dpr={dpr()}
+          gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+        >
           <Suspense fallback={null}>
             <Knot />
           </Suspense>

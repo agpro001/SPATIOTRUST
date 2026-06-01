@@ -4,6 +4,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useMemo, useRef, useEffect } from "react";
 import * as THREE from "three";
 import type { Point, ValidationResult } from "@/lib/validator";
+import { dpr, isLowPower } from "@/lib/perf";
 
 type Props = {
   points: Point[] | null;
@@ -134,11 +135,11 @@ function Placeholder() {
 export function PointCloudScene(props: Props) {
   const hasPoints = props.points && props.points.length > 0;
   return (
-    <div className="relative w-full h-full rounded-md overflow-hidden border border-border bg-terminal-bg/60 scanlines">
+    <div className="relative w-full h-full rounded-md overflow-hidden border border-border bg-terminal-bg/60 scanlines gpu-layer">
       <Canvas
-        dpr={[1, 2]}
+        dpr={dpr()}
         camera={{ position: [10, 8, 12], fov: 45 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: !isLowPower, alpha: true, powerPreference: "high-performance" }}
       >
         <color attach="background" args={["#0a0f1d"]} />
         <fog attach="fog" args={["#0a0f1d", 18, 60]} />
@@ -155,9 +156,11 @@ export function PointCloudScene(props: Props) {
         />
         {hasPoints ? <Cloud {...props} /> : <Placeholder />}
         <OrbitControls enableDamping dampingFactor={0.08} maxDistance={50} minDistance={4} />
-        <EffectComposer>
-          <Bloom intensity={0.7} luminanceThreshold={0.55} luminanceSmoothing={0.18} mipmapBlur />
-        </EffectComposer>
+        {!isLowPower && (
+          <EffectComposer>
+            <Bloom intensity={0.7} luminanceThreshold={0.55} luminanceSmoothing={0.18} mipmapBlur />
+          </EffectComposer>
+        )}
       </Canvas>
       {/* HUD overlay */}
       <div className="absolute top-3 left-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground pointer-events-none">

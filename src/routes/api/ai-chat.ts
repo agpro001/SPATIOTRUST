@@ -21,9 +21,10 @@ export const Route = createFileRoute("/api/ai-chat")({
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
       POST: async ({ request }) => {
         try {
-          const { messages, context } = (await request.json()) as {
+          const { messages, context, mode } = (await request.json()) as {
             messages: Array<{ role: "user" | "assistant"; content: string }>;
             context?: unknown;
+            mode?: "explainer" | "fix";
           };
           const geminiKey = process.env.GEMINI_API_KEY;
           const gatewayKey = process.env.LOVABLE_API_KEY;
@@ -31,8 +32,16 @@ export const Route = createFileRoute("/api/ai-chat")({
             return jsonResp({ error: "No AI provider configured" }, 500);
           }
 
+          const modeSuffix =
+            mode === "explainer"
+              ? "\n\nMODE: ANOMALY EXPLAINER. Output EXACTLY 3 bullets, each ≤ 22 words, naming the triggered heuristic (base support, centroid alignment, or floating mass) and the metric that proves it. No preamble."
+              : mode === "fix"
+              ? "\n\nMODE: FIX SUGGESTER. Output EXACTLY 3 numbered actions (≤ 20 words each) the operator can take on the source data to flip status from fail → pass. Reference at least one metric per action. No preamble."
+              : "";
+
           const sys =
             SYSTEM_PROMPT +
+            modeSuffix +
             (context
               ? `\n\nLatest validation context (do not echo verbatim; reason about it):\n\n\`\`\`json\n${JSON.stringify(context, null, 2)}\n\`\`\``
               : "");

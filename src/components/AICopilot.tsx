@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Bot, X, Send, Sparkles } from "lucide-react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Bot, X, Send, Sparkles, AlertTriangle, Wrench } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import * as THREE from "three";
 import { useApp } from "@/lib/store";
+import { dpr, geomDetail, isLowPower } from "@/lib/perf";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 /* Animated icosahedron core for the orb */
 function Core({ tone }: { tone: "idle" | "ok" | "fail" }) {
   const ref = useRef<THREE.Mesh>(null);
+  const invalidate = useThree((s) => s.invalidate);
   useFrame(({ clock }) => {
     if (!ref.current) return;
     ref.current.rotation.x = clock.elapsedTime * 0.6;
     ref.current.rotation.y = clock.elapsedTime * 0.4;
+    invalidate();
   });
   const color = tone === "ok" ? "#5cffaa" : tone === "fail" ? "#ff4f6a" : "#7dd3fc";
   return (
@@ -22,12 +25,34 @@ function Core({ tone }: { tone: "idle" | "ok" | "fail" }) {
       <ambientLight intensity={0.6} />
       <pointLight position={[2, 2, 2]} intensity={1.4} color={color} />
       <mesh ref={ref}>
-        <icosahedronGeometry args={[0.85, 1]} />
+        <icosahedronGeometry args={[0.85, geomDetail(1)]} />
         <meshStandardMaterial color={color} wireframe emissive={color} emissiveIntensity={0.8} />
       </mesh>
     </>
   );
 }
+
+const MessageBubble = memo(function MessageBubble({
+  role,
+  content,
+}: {
+  role: "user" | "assistant";
+  content: string;
+}) {
+  return (
+    <div
+      className={`rounded-lg px-3 py-2 text-sm ${
+        role === "user"
+          ? "ml-8 bg-primary/10 border border-primary/20 text-foreground"
+          : "mr-4 bg-surface-2/70 border border-border text-foreground"
+      }`}
+    >
+      <div className="prose prose-sm prose-invert max-w-none [&_*]:!my-1 [&_code]:font-mono [&_code]:text-primary">
+        <ReactMarkdown>{content || "…"}</ReactMarkdown>
+      </div>
+    </div>
+  );
+});
 
 export function AICopilot() {
   const [open, setOpen] = useState(false);
@@ -63,7 +88,7 @@ export function AICopilot() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, isValidating, autoNarrate]);
 
-  async function send(text: string, hidden = false) {
+  async function send(text: string, hidden = false, mode?: "explainer" | "fix") {
     const userMsg: Msg = { role: "user", content: text };
     const next: Msg[] = hidden ? messages : [...messages, userMsg];
     if (!hidden) setMessages(next);
@@ -77,6 +102,7 @@ export function AICopilot() {
         body: JSON.stringify({
           messages: hidden ? [...messages, userMsg] : next,
           context: result ?? null,
+          mode,
         }),
       });
       if (!r.ok || !r.body) {
@@ -145,7 +171,12 @@ export function AICopilot() {
         className="fixed bottom-5 right-5 z-40 size-16 rounded-full border border-primary/30 bg-surface/80 backdrop-blur-xl shadow-[0_0_40px_-12px_var(--primary-glow)] overflow-hidden"
         title="SpatioTrust AI co-pilot"
       >
-        <Canvas camera={{ position: [0, 0, 2.4], fov: 45 }}>
+        <Canvas
+          camera={{ position: [0, 0, 2.4], fov: 45 }}
+          dpr={dpr()}
+          frameloop="always"
+          gl={{ antialias: !isLowPower, powerPreference: "high-performance", alpha: true }}
+        >
           <Core tone={tone} />
         </Canvas>
         <span className="absolute -top-1 -right-1 size-3 rounded-full bg-primary animate-pulse" />
@@ -172,21 +203,54 @@ export function AICopilot() {
             </div>
             <div ref={scrollRef} className="flex-1 overflow-auto p-4 space-y-3">
               {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`rounded-lg px-3 py-2 text-sm ${
-                    m.role === "user"
-                      ? "ml-8 bg-primary/10 border border-primary/20 text-foreground"
-                      : "mr-4 bg-surface-2/70 border border-border text-foreground"
-                  }`}
-                >
-                  <div className="prose prose-sm prose-invert max-w-none [&_*]:!my-1 [&_code]:font-mono [&_code]:text-primary">
-                    <ReactMarkdown>{m.content || (busy && i === messages.length - 1 ? "…" : "")}</ReactMarkdown>
-                  </div>
-                </div>
+                <MessageBubble key={i} role={m.role} content={m.content} />
               ))}
             </div>
             <div className="border-t border-border p-3 bg-surface/60">
+              {/* Context-aware action chips */}
+              <AnimatePresence>
+                {result && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    className="flex gap-2 mb-2 flex-wrap"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() =>
+                        send(
+                          "Explain the anomaly in this validation: identify which heuristic (base support, centroid alignment, floating mass) triggered and why. Use 3 short bullets.",
+                          false,
+                          "explainer"
+                        )
+                      }
+                      disabled={busy}
+                      className="text-[11px] px-2 py-1 rounded-full border border-warning/40 bg-warning/10 text-warning hover:bg-warning/20 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                    >
+                      <AlertTriangle className="size-3" /> Explain anomaly
+                    </motion.button>
+                    {result.status === "fail" && (
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.92 }}
+                        onClick={() =>
+                          send(
+                            "Recommend 3 concrete spatial corrections (recenter mass, expand base footprint, remove floating slice) that would flip this from fail to pass. Reference specific metrics.",
+                            false,
+                            "fix"
+                          )
+                        }
+                        disabled={busy}
+                        className="text-[11px] px-2 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        <Wrench className="size-3" /> Suggest a fix
+                      </motion.button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <div className="flex gap-2 mb-2 flex-wrap">
                 {["Explain this result", "What is a zk attestation?", "Walk me through the demo"].map((q) => (
                   <button
