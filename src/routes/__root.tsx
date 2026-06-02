@@ -80,11 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "SpatioTrust — Decentralized Spatial Oracle Network" },
       { name: "description", content: "Verify the physical integrity of real-world 3D environments before releasing on-chain funds. ZK-proof attested spatial oracles." },
       { name: "author", content: "SpatioTrust" },
-      { property: "og:title", content: "SpatioTrust — Spatial Oracle Network" },
-      { property: "og:description", content: "Decentralized 3D geometry validation with ZK-proof attestation for DeFi." },
+      { property: "og:title", content: "SpatioTrust — Decentralized Spatial Oracle Network" },
+      { property: "og:description", content: "Verify the physical integrity of real-world 3D environments before releasing on-chain funds. ZK-proof attested spatial oracles." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@agpro001" },
+      { name: "twitter:title", content: "SpatioTrust — Decentralized Spatial Oracle Network" },
+      { name: "twitter:description", content: "Verify the physical integrity of real-world 3D environments before releasing on-chain funds. ZK-proof attested spatial oracles." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a77d654-406e-4922-ab91-d9ab7435efe0/id-preview-6f8cb49f--b9b2efab-644f-494d-b0f5-30ca303c05bd.lovable.app-1780383003120.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a77d654-406e-4922-ab91-d9ab7435efe0/id-preview-6f8cb49f--b9b2efab-644f-494d-b0f5-30ca303c05bd.lovable.app-1780383003120.png" },
     ],
     links: [
       {
