@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/ai-vision")({
           const { image, mimeType } = (await request.json()) as { image: string; mimeType: string };
           if (!image) return json({ error: "image (base64) required" }, 400);
           const geminiKey = process.env.GEMINI_API_KEY;
-          const gatewayKey = process.env.AI_GATEWAY_API_KEY;
+          const gatewayKey = process.env.LOVABLE_API_KEY;
           if (!geminiKey && !gatewayKey) return json({ error: "No AI provider configured" }, 500);
 
           const v = await visionToJson({

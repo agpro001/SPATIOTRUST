@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/ai-chat")({
             mode?: "explainer" | "fix";
           };
           const geminiKey = process.env.GEMINI_API_KEY;
-          const gatewayKey = process.env.AI_GATEWAY_API_KEY;
+          const gatewayKey = process.env.LOVABLE_API_KEY;
           if (!geminiKey && !gatewayKey) {
             return jsonResp({ error: "No AI provider configured" }, 500);
           }
