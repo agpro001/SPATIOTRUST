@@ -16,9 +16,14 @@ export async function parseCsvXyzFile(file: File): Promise<Point[]> {
   const hasHeader = firstCols.slice(0, 3).some((c) => isNaN(Number(c)));
   const start = hasHeader ? 1 : 0;
   for (let i = start; i < lines.length; i++) {
-    const cols = lines[i].split(delim as any).map((s) => s.trim()).filter(Boolean);
+    const cols = lines[i]
+      .split(delim as any)
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (cols.length < 3) continue;
-    const x = Number(cols[0]); const y = Number(cols[1]); const z = Number(cols[2]);
+    const x = Number(cols[0]);
+    const y = Number(cols[1]);
+    const z = Number(cols[2]);
     if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
       out.push({ x, y, z });
     }

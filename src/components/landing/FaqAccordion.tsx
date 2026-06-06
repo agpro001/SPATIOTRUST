@@ -1,4 +1,9 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 
 const faqs = [
@@ -29,14 +34,26 @@ export function FaqAccordion() {
     <section id="faq" className="py-32 px-5 md:px-10">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">questions</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            questions
+          </div>
           <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">FAQ</h2>
         </div>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
           <Accordion type="single" collapsible className="space-y-2">
             {faqs.map((f, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border border-border rounded-md bg-surface/40 backdrop-blur px-5">
-                <AccordionTrigger className="font-display font-medium hover:no-underline">{f.q}</AccordionTrigger>
+              <AccordionItem
+                key={i}
+                value={`item-${i}`}
+                className="border border-border rounded-md bg-surface/40 backdrop-blur px-5"
+              >
+                <AccordionTrigger className="font-display font-medium hover:no-underline">
+                  {f.q}
+                </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
               </AccordionItem>
             ))}

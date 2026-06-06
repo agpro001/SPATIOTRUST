@@ -8,7 +8,8 @@ export async function parseJsonFile(file: File): Promise<Point[]> {
   const out: Point[] = [];
   for (const p of arr) {
     if (
-      p && typeof p === "object" &&
+      p &&
+      typeof p === "object" &&
       typeof (p as any).x === "number" &&
       typeof (p as any).y === "number" &&
       typeof (p as any).z === "number"

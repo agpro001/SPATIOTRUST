@@ -59,7 +59,11 @@ export function AICopilot() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "I'm the **SpatioTrust Oracle Assistant**. Drop a point cloud or load a scenario and I'll walk you through what the validators see. Ask me anything." },
+    {
+      role: "assistant",
+      content:
+        "I'm the **SpatioTrust Oracle Assistant**. Drop a point cloud or load a scenario and I'll walk you through what the validators see. Ask me anything.",
+    },
   ]);
   const result = useApp((s) => s.result);
   const isValidating = useApp((s) => s.isValidating);
@@ -83,7 +87,7 @@ export function AICopilot() {
       result.status === "pass"
         ? "Summarize this verified attestation in 2 short sentences."
         : "In 2 short sentences, explain why this spatial structure failed integrity.",
-      /*hidden*/ true
+      /*hidden*/ true,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, isValidating, autoNarrate]);
@@ -128,10 +132,15 @@ export function AICopilot() {
           if (line.startsWith(":") || line.trim() === "") continue;
           if (!line.startsWith("data: ")) continue;
           const payload = line.slice(6).trim();
-          if (payload === "[DONE]") { done = true; break; }
+          if (payload === "[DONE]") {
+            done = true;
+            break;
+          }
           try {
             const parsed = JSON.parse(payload);
-            const delta = (parsed.delta ?? parsed.choices?.[0]?.delta?.content) as string | undefined;
+            const delta = (parsed.delta ?? parsed.choices?.[0]?.delta?.content) as
+              | string
+              | undefined;
             if (parsed.error) {
               setMessages((m) => {
                 const c = [...m];
@@ -155,7 +164,10 @@ export function AICopilot() {
         }
       }
     } catch (e: any) {
-      setMessages((m) => [...m, { role: "assistant", content: `⚠ ${e?.message ?? "network error"}` }]);
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: `⚠ ${e?.message ?? "network error"}` },
+      ]);
     } finally {
       setBusy(false);
     }
@@ -195,9 +207,14 @@ export function AICopilot() {
               <div className="flex items-center gap-2">
                 <Bot className="size-4 text-primary" />
                 <span className="font-display font-semibold text-sm">Oracle Assistant</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">ai mesh · streaming</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  ai mesh · streaming
+                </span>
               </div>
-              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <button
+                onClick={() => setOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
                 <X className="size-4" />
               </button>
             </div>
@@ -223,7 +240,7 @@ export function AICopilot() {
                         send(
                           "Explain the anomaly in this validation: identify which heuristic (base support, centroid alignment, floating mass) triggered and why. Use 3 short bullets.",
                           false,
-                          "explainer"
+                          "explainer",
                         )
                       }
                       disabled={busy}
@@ -239,7 +256,7 @@ export function AICopilot() {
                           send(
                             "Recommend 3 concrete spatial corrections (recenter mass, expand base footprint, remove floating slice) that would flip this from fail to pass. Reference specific metrics.",
                             false,
-                            "fix"
+                            "fix",
                           )
                         }
                         disabled={busy}
@@ -252,7 +269,11 @@ export function AICopilot() {
                 )}
               </AnimatePresence>
               <div className="flex gap-2 mb-2 flex-wrap">
-                {["Explain this result", "What is a zk attestation?", "Walk me through the demo"].map((q) => (
+                {[
+                  "Explain this result",
+                  "What is a zk attestation?",
+                  "Walk me through the demo",
+                ].map((q) => (
                   <button
                     key={q}
                     onClick={() => send(q)}
@@ -265,7 +286,10 @@ export function AICopilot() {
                 ))}
               </div>
               <form
-                onSubmit={(e) => { e.preventDefault(); if (input.trim() && !busy) send(input.trim()); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (input.trim() && !busy) send(input.trim());
+                }}
                 className="flex items-center gap-2"
               >
                 <input

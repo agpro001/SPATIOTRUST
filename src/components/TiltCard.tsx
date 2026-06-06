@@ -12,8 +12,14 @@ export function TiltCard({ children, className = "", intensity = 10 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rx = useSpring(useTransform(y, [-0.5, 0.5], [intensity, -intensity]), { stiffness: 220, damping: 18 });
-  const ry = useSpring(useTransform(x, [-0.5, 0.5], [-intensity, intensity]), { stiffness: 220, damping: 18 });
+  const rx = useSpring(useTransform(y, [-0.5, 0.5], [intensity, -intensity]), {
+    stiffness: 220,
+    damping: 18,
+  });
+  const ry = useSpring(useTransform(x, [-0.5, 0.5], [-intensity, intensity]), {
+    stiffness: 220,
+    damping: 18,
+  });
 
   function onMove(e: React.PointerEvent<HTMLDivElement>) {
     const r = ref.current?.getBoundingClientRect();
@@ -21,7 +27,10 @@ export function TiltCard({ children, className = "", intensity = 10 }: Props) {
     x.set((e.clientX - r.left) / r.width - 0.5);
     y.set((e.clientY - r.top) / r.height - 0.5);
   }
-  function reset() { x.set(0); y.set(0); }
+  function reset() {
+    x.set(0);
+    y.set(0);
+  }
 
   return (
     <motion.div

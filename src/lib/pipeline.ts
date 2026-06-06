@@ -11,10 +11,40 @@ export type PipelineStep = {
 };
 
 export const PIPELINE_STEPS: PipelineStep[] = [
-  { id: "ingest", label: "[oracle] Ingesting spatial data", detail: "decoding JSON point cloud …", delayMs: 0 },
-  { id: "agents", label: "[agents] Spinning up validator quorum", detail: "3/3 nodes online", delayMs: 250 },
-  { id: "aabb", label: "[geom] Running AABB + gravity check", detail: "computing centroid + base footprint", delayMs: 600 },
-  { id: "anomaly", label: "[scan] Sweeping for floating-mass anomalies", detail: "y-slice integrity audit", delayMs: 1000 },
-  { id: "consensus", label: "[bft] Consensus across oracle agents", detail: "2/3+ threshold reached", delayMs: 1450 },
-  { id: "zk", label: "[zk] Generating zk-mock attestation", detail: "sha-256 commitment over canonicalized cloud", delayMs: 1800 },
+  {
+    id: "ingest",
+    label: "[oracle] Ingesting spatial data",
+    detail: "decoding JSON point cloud …",
+    delayMs: 0,
+  },
+  {
+    id: "agents",
+    label: "[agents] Spinning up validator quorum",
+    detail: "3/3 nodes online",
+    delayMs: 250,
+  },
+  {
+    id: "aabb",
+    label: "[geom] Running AABB + gravity check",
+    detail: "computing centroid + base footprint",
+    delayMs: 600,
+  },
+  {
+    id: "anomaly",
+    label: "[scan] Sweeping for floating-mass anomalies",
+    detail: "y-slice integrity audit",
+    delayMs: 1000,
+  },
+  {
+    id: "consensus",
+    label: "[bft] Consensus across oracle agents",
+    detail: "2/3+ threshold reached",
+    delayMs: 1450,
+  },
+  {
+    id: "zk",
+    label: "[zk] Generating zk-mock attestation",
+    detail: "sha-256 commitment over canonicalized cloud",
+    delayMs: 1800,
+  },
 ];

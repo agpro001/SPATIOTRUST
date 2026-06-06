@@ -23,20 +23,32 @@ function Cloud({ points, result, isValidating }: Props) {
 
   const { positions, colors, center, size } = useMemo(() => {
     if (!points || points.length === 0) {
-      return { positions: new Float32Array(0), colors: new Float32Array(0), center: new THREE.Vector3(), size: 6 };
+      return {
+        positions: new Float32Array(0),
+        colors: new Float32Array(0),
+        center: new THREE.Vector3(),
+        size: 6,
+      };
     }
     const positions = new Float32Array(points.length * 3);
     const colors = new Float32Array(points.length * 3);
-    let xMin = Infinity, yMin = Infinity, zMin = Infinity;
-    let xMax = -Infinity, yMax = -Infinity, zMax = -Infinity;
+    let xMin = Infinity,
+      yMin = Infinity,
+      zMin = Infinity;
+    let xMax = -Infinity,
+      yMax = -Infinity,
+      zMax = -Infinity;
     for (let i = 0; i < points.length; i++) {
       const p = points[i];
       positions[i * 3] = p.x;
       positions[i * 3 + 1] = p.y;
       positions[i * 3 + 2] = p.z;
-      if (p.x < xMin) xMin = p.x; if (p.x > xMax) xMax = p.x;
-      if (p.y < yMin) yMin = p.y; if (p.y > yMax) yMax = p.y;
-      if (p.z < zMin) zMin = p.z; if (p.z > zMax) zMax = p.z;
+      if (p.x < xMin) xMin = p.x;
+      if (p.x > xMax) xMax = p.x;
+      if (p.y < yMin) yMin = p.y;
+      if (p.y > yMax) yMax = p.y;
+      if (p.z < zMin) zMin = p.z;
+      if (p.z > zMax) zMax = p.z;
     }
     const yRange = Math.max(yMax - yMin, 1e-3);
     const anomalySet = new Set<number>(result?.metrics.anomalyIndices ?? []);
@@ -52,12 +64,12 @@ function Cloud({ points, result, isValidating }: Props) {
         // faded fail palette
         colors[i * 3] = 0.55 + t * 0.25;
         colors[i * 3 + 1] = 0.25;
-        colors[i * 3 + 2] = 0.30;
+        colors[i * 3 + 2] = 0.3;
       } else {
         // healthy: cyan → neon-green gradient
-        colors[i * 3] = 0.25 + t * 0.10;
-        colors[i * 3 + 1] = 0.85 + t * 0.10;
-        colors[i * 3 + 2] = 0.50 + (1 - t) * 0.40;
+        colors[i * 3] = 0.25 + t * 0.1;
+        colors[i * 3 + 1] = 0.85 + t * 0.1;
+        colors[i * 3 + 2] = 0.5 + (1 - t) * 0.4;
       }
     }
     const center = new THREE.Vector3((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
@@ -76,9 +88,7 @@ function Cloud({ points, result, isValidating }: Props) {
   useFrame(({ clock }) => {
     if (matRef.current) {
       const base = 0.07;
-      matRef.current.size = isValidating
-        ? base + Math.sin(clock.elapsedTime * 5) * 0.025
-        : base;
+      matRef.current.size = isValidating ? base + Math.sin(clock.elapsedTime * 5) * 0.025 : base;
     }
   });
 
@@ -105,10 +115,7 @@ function Cloud({ points, result, isValidating }: Props) {
         <mesh position={[(min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2]}>
           <boxGeometry args={[max.x - min.x, max.y - min.y, max.z - min.z]} />
           <meshBasicMaterial visible={false} />
-          <Edges
-            scale={1.001}
-            color={result?.status === "fail" ? "#ff3a55" : "#5cffaa"}
-          />
+          <Edges scale={1.001} color={result?.status === "fail" ? "#ff3a55" : "#5cffaa"} />
         </mesh>
       )}
     </group>
@@ -169,9 +176,15 @@ export function PointCloudScene(props: Props) {
       {props.result && (
         <div className="absolute bottom-3 left-3 right-3 font-mono text-[10px] grid grid-cols-2 md:grid-cols-4 gap-2 pointer-events-none">
           <Stat label="points" value={props.result.metrics.total.toString()} />
-          <Stat label="base ratio" value={`${(props.result.metrics.baseRatio * 100).toFixed(1)}%`} />
+          <Stat
+            label="base ratio"
+            value={`${(props.result.metrics.baseRatio * 100).toFixed(1)}%`}
+          />
           <Stat label="centroid sup." value={props.result.metrics.centroidSupported ? "✓" : "✗"} />
-          <Stat label="floating mass" value={props.result.metrics.floatingMass ? "DETECTED" : "none"} />
+          <Stat
+            label="floating mass"
+            value={props.result.metrics.floatingMass ? "DETECTED" : "none"}
+          />
         </div>
       )}
     </div>

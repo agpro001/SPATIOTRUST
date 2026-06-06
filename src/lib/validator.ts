@@ -31,7 +31,7 @@ export type ValidatorOpts = {
 
 export async function validatePointCloud(
   points: Point[],
-  opts: ValidatorOpts = {}
+  opts: ValidatorOpts = {},
 ): Promise<ValidationResult> {
   const slackPct = clamp01(opts.baseSupportTolerance ?? 0.15) * 1; // already 0..0.5
   const sensitivity = clamp01(opts.confidenceSensitivity ?? 0.7);
@@ -40,45 +40,70 @@ export async function validatePointCloud(
   }
 
   // 1. AABB + centroid
-  let xMin = Infinity, yMin = Infinity, zMin = Infinity;
-  let xMax = -Infinity, yMax = -Infinity, zMax = -Infinity;
-  let cx = 0, cy = 0, cz = 0;
+  let xMin = Infinity,
+    yMin = Infinity,
+    zMin = Infinity;
+  let xMax = -Infinity,
+    yMax = -Infinity,
+    zMax = -Infinity;
+  let cx = 0,
+    cy = 0,
+    cz = 0;
   for (const p of points) {
-    if (p.x < xMin) xMin = p.x; if (p.x > xMax) xMax = p.x;
-    if (p.y < yMin) yMin = p.y; if (p.y > yMax) yMax = p.y;
-    if (p.z < zMin) zMin = p.z; if (p.z > zMax) zMax = p.z;
-    cx += p.x; cy += p.y; cz += p.z;
+    if (p.x < xMin) xMin = p.x;
+    if (p.x > xMax) xMax = p.x;
+    if (p.y < yMin) yMin = p.y;
+    if (p.y > yMax) yMax = p.y;
+    if (p.z < zMin) zMin = p.z;
+    if (p.z > zMax) zMax = p.z;
+    cx += p.x;
+    cy += p.y;
+    cz += p.z;
   }
   const n = points.length;
-  cx /= n; cy /= n; cz /= n;
+  cx /= n;
+  cy /= n;
+  cz /= n;
 
   const yRange = Math.max(yMax - yMin, 1e-6);
 
   // 2. Base set: lowest 10% of height
-  const baseThreshold = yMin + 0.10 * yRange;
+  const baseThreshold = yMin + 0.1 * yRange;
   const baseIndices: number[] = [];
-  let bxMin = Infinity, bzMin = Infinity, bxMax = -Infinity, bzMax = -Infinity;
-  let bcx = 0, bcz = 0;
+  let bxMin = Infinity,
+    bzMin = Infinity,
+    bxMax = -Infinity,
+    bzMax = -Infinity;
+  let bcx = 0,
+    bcz = 0;
   for (let i = 0; i < n; i++) {
     const p = points[i];
     if (p.y <= baseThreshold) {
       baseIndices.push(i);
-      if (p.x < bxMin) bxMin = p.x; if (p.x > bxMax) bxMax = p.x;
-      if (p.z < bzMin) bzMin = p.z; if (p.z > bzMax) bzMax = p.z;
-      bcx += p.x; bcz += p.z;
+      if (p.x < bxMin) bxMin = p.x;
+      if (p.x > bxMax) bxMax = p.x;
+      if (p.z < bzMin) bzMin = p.z;
+      if (p.z > bzMax) bzMax = p.z;
+      bcx += p.x;
+      bcz += p.z;
     }
   }
   const baseCount = baseIndices.length;
   const baseRatio = baseCount / n;
-  if (baseCount > 0) { bcx /= baseCount; bcz /= baseCount; }
+  if (baseCount > 0) {
+    bcx /= baseCount;
+    bcz /= baseCount;
+  }
 
   // 3. Centroid x,z must lie inside base footprint (with small slack)
   const slackX = slackPct * (xMax - xMin || 1);
   const slackZ = slackPct * (zMax - zMin || 1);
   const centroidInside =
     baseCount > 0 &&
-    cx >= bxMin - slackX && cx <= bxMax + slackX &&
-    cz >= bzMin - slackZ && cz <= bzMax + slackZ;
+    cx >= bxMin - slackX &&
+    cx <= bxMax + slackX &&
+    cz >= bzMin - slackZ &&
+    cz <= bzMax + slackZ;
   const enoughBaseMass = baseRatio >= 0.12;
   const centroidSupported = centroidInside && enoughBaseMass;
 
@@ -109,9 +134,13 @@ export async function validatePointCloud(
   // 5. Confidence + status
   const supportScore = centroidSupported ? 1 : 0.2;
   const floatScore = floatingMass ? 0.1 : 1;
-  const massScore = Math.min(1, baseRatio / 0.20);
-  const confidence = Math.max(0, Math.min(1, 0.45 * supportScore + 0.40 * floatScore + 0.15 * massScore));
-  const status: "pass" | "fail" = confidence >= sensitivity && !floatingMass && centroidSupported ? "pass" : "fail";
+  const massScore = Math.min(1, baseRatio / 0.2);
+  const confidence = Math.max(
+    0,
+    Math.min(1, 0.45 * supportScore + 0.4 * floatScore + 0.15 * massScore),
+  );
+  const status: "pass" | "fail" =
+    confidence >= sensitivity && !floatingMass && centroidSupported ? "pass" : "fail";
   const anomaly_detected = floatingMass || !centroidSupported;
 
   // 6. ZK mock hash — deterministic

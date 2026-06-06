@@ -42,7 +42,9 @@ export function PublishProofButton() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
         className="flex items-center gap-3 flex-wrap"
       >
         <button
@@ -53,10 +55,18 @@ export function PublishProofButton() {
               ? "bg-primary text-primary-foreground hover:shadow-[0_0_30px_-6px_var(--primary-glow)]"
               : "bg-surface-2 text-muted-foreground cursor-not-allowed"
           }`}
-          title={canPublish ? "Sign a Sepolia attestation containing the zk hash" : "Cannot publish a failed attestation"}
+          title={
+            canPublish
+              ? "Sign a Sepolia attestation containing the zk hash"
+              : "Cannot publish a failed attestation"
+          }
         >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-          {busy ? "Awaiting signature …" : canPublish ? "Publish Oracle Proof" : "Proof rejected — release blocked"}
+          {busy
+            ? "Awaiting signature …"
+            : canPublish
+              ? "Publish Oracle Proof"
+              : "Proof rejected — release blocked"}
         </button>
         {tx && (
           <a

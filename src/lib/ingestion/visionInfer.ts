@@ -35,7 +35,10 @@ export async function inferPointCloudFromImage(file: File): Promise<VisionResult
 }
 
 /** Convenience for already-rendered canvases (e.g. PDF first page). */
-export async function inferPointCloudFromBlob(blob: Blob, fileName = "render.png"): Promise<VisionResult> {
+export async function inferPointCloudFromBlob(
+  blob: Blob,
+  fileName = "render.png",
+): Promise<VisionResult> {
   const file = new File([blob], fileName, { type: blob.type || "image/png" });
   return inferPointCloudFromImage(file);
 }

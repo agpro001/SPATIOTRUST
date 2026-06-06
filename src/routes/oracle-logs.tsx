@@ -20,10 +20,7 @@ function OracleLogs() {
   const [anomaly, setAnomaly] = useState<AnomalyFilter>("all");
   const [scenario, setScenario] = useState<string>("all");
 
-  const scenarios = useMemo(
-    () => Array.from(new Set(logs.map((l) => l.scenario))).sort(),
-    [logs]
-  );
+  const scenarios = useMemo(() => Array.from(new Set(logs.map((l) => l.scenario))).sort(), [logs]);
 
   const filtered = useMemo(() => {
     return logs.filter((l) => {
@@ -40,7 +37,15 @@ function OracleLogs() {
       toast.error("No rows to export with current filters");
       return;
     }
-    const header = ["timestamp", "scenario", "status", "confidence", "anomaly_detected", "zk_mock_hash", "tx_hash"];
+    const header = [
+      "timestamp",
+      "scenario",
+      "status",
+      "confidence",
+      "anomaly_detected",
+      "zk_mock_hash",
+      "tx_hash",
+    ];
     const rows = filtered.map((l) => [
       new Date(l.timestamp).toISOString(),
       l.scenario,
@@ -51,10 +56,14 @@ function OracleLogs() {
       l.txHash ?? "",
     ]);
     const csv = [header, ...rows]
-      .map((r) => r.map((cell) => {
-        const s = String(cell ?? "");
-        return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-      }).join(","))
+      .map((r) =>
+        r
+          .map((cell) => {
+            const s = String(cell ?? "");
+            return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+          })
+          .join(","),
+      )
       .join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -73,7 +82,9 @@ function OracleLogs() {
   return (
     <div className="p-5 space-y-5">
       <header>
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">audit trail</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          audit trail
+        </div>
         <div className="flex items-end justify-between gap-3 flex-wrap mt-1">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -148,7 +159,9 @@ function OracleLogs() {
 
       <div className="rounded-md border border-border bg-surface/60 overflow-hidden">
         {logs.length === 0 ? (
-          <div className="p-10 text-center text-muted-foreground font-mono text-sm">no runs yet — head to mission control</div>
+          <div className="p-10 text-center text-muted-foreground font-mono text-sm">
+            no runs yet — head to mission control
+          </div>
         ) : filtered.length === 0 ? (
           <div className="p-10 text-center text-muted-foreground font-mono text-sm">
             no rows match the current filters
@@ -168,43 +181,50 @@ function OracleLogs() {
             </thead>
             <tbody>
               <AnimatePresence initial={false}>
-              {filtered.map((l) => (
-                <motion.tr
-                  key={l.id}
-                  layout
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="border-t border-border font-mono text-[12px]"
-                >
-                  <td className="p-3 text-muted-foreground">{new Date(l.timestamp).toLocaleTimeString()}</td>
-                  <td className="p-3">{l.scenario}</td>
-                  <td className={`p-3 ${l.result.status === "pass" ? "text-primary" : "text-destructive"}`}>
-                    {l.result.status.toUpperCase()}
-                  </td>
-                  <td className="p-3">{Math.round(l.result.confidence * 100)}%</td>
-                  <td className={`p-3 ${l.result.anomaly_detected ? "text-destructive" : "text-muted-foreground"}`}>
-                    {l.result.anomaly_detected ? "detected" : "—"}
-                  </td>
-                  <td className="p-3 truncate max-w-[280px]" title={l.result.zk_mock_hash}>
-                    {l.result.zk_mock_hash.slice(0, 14)}…{l.result.zk_mock_hash.slice(-6)}
-                  </td>
-                  <td className="p-3">
-                    {l.txHash ? (
-                      <a
-                        className="text-accent hover:underline inline-flex items-center gap-1"
-                        href={`https://sepolia.etherscan.io/tx/${l.txHash}`}
-                        target="_blank" rel="noreferrer"
-                      >
-                        {l.txHash.slice(0, 10)}… <ExternalLink className="size-3" />
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                </motion.tr>
-              ))}
+                {filtered.map((l) => (
+                  <motion.tr
+                    key={l.id}
+                    layout
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="border-t border-border font-mono text-[12px]"
+                  >
+                    <td className="p-3 text-muted-foreground">
+                      {new Date(l.timestamp).toLocaleTimeString()}
+                    </td>
+                    <td className="p-3">{l.scenario}</td>
+                    <td
+                      className={`p-3 ${l.result.status === "pass" ? "text-primary" : "text-destructive"}`}
+                    >
+                      {l.result.status.toUpperCase()}
+                    </td>
+                    <td className="p-3">{Math.round(l.result.confidence * 100)}%</td>
+                    <td
+                      className={`p-3 ${l.result.anomaly_detected ? "text-destructive" : "text-muted-foreground"}`}
+                    >
+                      {l.result.anomaly_detected ? "detected" : "—"}
+                    </td>
+                    <td className="p-3 truncate max-w-[280px]" title={l.result.zk_mock_hash}>
+                      {l.result.zk_mock_hash.slice(0, 14)}…{l.result.zk_mock_hash.slice(-6)}
+                    </td>
+                    <td className="p-3">
+                      {l.txHash ? (
+                        <a
+                          className="text-accent hover:underline inline-flex items-center gap-1"
+                          href={`https://sepolia.etherscan.io/tx/${l.txHash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {l.txHash.slice(0, 10)}… <ExternalLink className="size-3" />
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </motion.tr>
+                ))}
               </AnimatePresence>
             </tbody>
           </table>

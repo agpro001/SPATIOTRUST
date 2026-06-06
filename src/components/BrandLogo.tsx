@@ -23,7 +23,9 @@ export function BrandLogo({
       initial={{ opacity: 0, scale: 0.85, rotate: -15 }}
       animate={{ opacity: 1, scale: 1, rotate: 0 }}
       transition={{ type: "spring", stiffness: 180, damping: 18 }}
-      style={{ filter: "drop-shadow(0 0 12px color-mix(in oklab, var(--primary) 55%, transparent))" }}
+      style={{
+        filter: "drop-shadow(0 0 12px color-mix(in oklab, var(--primary) 55%, transparent))",
+      }}
     >
       <defs>
         <linearGradient id="bl-grad" x1="0" y1="0" x2="1" y2="1">
@@ -54,7 +56,15 @@ export function BrandLogo({
         transition={{ duration: isHero ? 16 : 24, repeat: Infinity, ease: "linear" }}
         style={{ transformOrigin: "32px 32px" }}
       >
-        <circle cx="32" cy="32" r="14" fill="none" stroke="var(--primary)" strokeOpacity={0.35} strokeDasharray="2 4" />
+        <circle
+          cx="32"
+          cy="32"
+          r="14"
+          fill="none"
+          stroke="var(--primary)"
+          strokeOpacity={0.35}
+          strokeDasharray="2 4"
+        />
         {[0, 60, 120, 180, 240, 300].map((deg) => {
           const r = 14;
           const rad = (deg * Math.PI) / 180;

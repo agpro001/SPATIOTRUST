@@ -23,7 +23,7 @@ type Props = Omit<HTMLMotionProps<"button">, "children"> & {
 /** Reusable animated button: scale-tap + radial ripple on click. */
 export const FxButton = forwardRef<HTMLButtonElement, Props>(function FxButton(
   { variant = "primary", size = "md", glow = false, className = "", children, onClick, ...rest },
-  ref
+  ref,
 ) {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
 
@@ -39,8 +39,8 @@ export const FxButton = forwardRef<HTMLButtonElement, Props>(function FxButton(
     size === "lg"
       ? "px-7 py-3.5 text-base"
       : size === "sm"
-      ? "px-3 py-1.5 text-xs"
-      : "px-5 py-2.5 text-sm";
+        ? "px-3 py-1.5 text-xs"
+        : "px-5 py-2.5 text-sm";
 
   return (
     <motion.button

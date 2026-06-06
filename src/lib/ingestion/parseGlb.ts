@@ -31,9 +31,20 @@ export async function parseGlbFile(file: File, cap = pointCap(6000)): Promise<Po
   if (collected.length < 8) throw new Error("GLB contained no readable vertex positions");
 
   // Recenter on origin (x,z) and drop to y=0
-  let cx = 0, cz = 0, minY = Infinity;
-  for (const p of collected) { cx += p.x; cz += p.z; if (p.y < minY) minY = p.y; }
-  cx /= collected.length; cz /= collected.length;
-  for (const p of collected) { p.x -= cx; p.z -= cz; p.y -= minY; }
+  let cx = 0,
+    cz = 0,
+    minY = Infinity;
+  for (const p of collected) {
+    cx += p.x;
+    cz += p.z;
+    if (p.y < minY) minY = p.y;
+  }
+  cx /= collected.length;
+  cz /= collected.length;
+  for (const p of collected) {
+    p.x -= cx;
+    p.z -= cz;
+    p.y -= minY;
+  }
   return collected;
 }

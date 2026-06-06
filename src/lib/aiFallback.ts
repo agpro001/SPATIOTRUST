@@ -37,21 +37,18 @@ export async function streamChat(opts: {
   // 1. Try Gemini direct
   if (geminiKey) {
     try {
-      const r = await fetch(
-        `${GEMINI_BASE}/gemini-2.0-flash:streamGenerateContent?alt=sse`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-          body: JSON.stringify({
-            systemInstruction: { role: "system", parts: [{ text: system }] },
-            contents: messages.map((m) => ({
-              role: m.role === "assistant" ? "model" : "user",
-              parts: [{ text: m.content }],
-            })),
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
-          }),
-        }
-      );
+      const r = await fetch(`${GEMINI_BASE}/gemini-2.0-flash:streamGenerateContent?alt=sse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+        body: JSON.stringify({
+          systemInstruction: { role: "system", parts: [{ text: system }] },
+          contents: messages.map((m) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      });
       if (r.ok && r.body) {
         return { provider: "gemini-direct", iterate: () => iterateGeminiSse(r.body!) };
       }
@@ -69,10 +66,7 @@ export async function streamChat(opts: {
   if (!gatewayKey) {
     throw new Error("Both Gemini and AI Mesh providers are unavailable");
   }
-  const sysAsUser: ChatMsg[] = [
-    { role: "user", content: `(system)\n${system}` },
-    ...messages,
-  ];
+  const sysAsUser: ChatMsg[] = [{ role: "user", content: `(system)\n${system}` }, ...messages];
   const r = await fetch(`${GATEWAY_BASE}/chat/completions`, {
     method: "POST",
     headers: {
@@ -112,7 +106,9 @@ async function* iterateGeminiSse(body: ReadableStream<Uint8Array>) {
         const j = JSON.parse(payload);
         const parts = j?.candidates?.[0]?.content?.parts ?? [];
         for (const p of parts) if (typeof p?.text === "string" && p.text) yield p.text;
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
@@ -137,7 +133,9 @@ async function* iterateOpenAiSse(body: ReadableStream<Uint8Array>) {
         const j = JSON.parse(payload);
         const delta = j?.choices?.[0]?.delta?.content;
         if (typeof delta === "string" && delta) yield delta;
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
@@ -163,13 +161,15 @@ export async function visionToJson(opts: {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
         body: JSON.stringify({
-          contents: [{
-            role: "user",
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: mimeType || "image/png", data: imageBase64 } },
-            ],
-          }],
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                { inline_data: { mime_type: mimeType || "image/png", data: imageBase64 } },
+              ],
+            },
+          ],
           generationConfig: {
             response_mime_type: "application/json",
             temperature: 0.3,
@@ -197,13 +197,18 @@ export async function visionToJson(opts: {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${gatewayKey}` },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
-      messages: [{
-        role: "user",
-        content: [
-          { type: "text", text: prompt + "\nReturn ONLY raw JSON, no markdown fences." },
-          { type: "image_url", image_url: { url: `data:${mimeType || "image/png"};base64,${imageBase64}` } },
-        ],
-      }],
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt + "\nReturn ONLY raw JSON, no markdown fences." },
+            {
+              type: "image_url",
+              image_url: { url: `data:${mimeType || "image/png"};base64,${imageBase64}` },
+            },
+          ],
+        },
+      ],
     }),
   });
   if (!r.ok) {

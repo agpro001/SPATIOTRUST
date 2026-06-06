@@ -45,7 +45,9 @@ export function WalletButton() {
   }
 
   function disconnect() {
-    try { wallet?.raw?.disconnect?.(); } catch {}
+    try {
+      wallet?.raw?.disconnect?.();
+    } catch {}
     setWallet(null);
     setOpen(false);
     toast.message("Wallet disconnected");
@@ -66,7 +68,9 @@ export function WalletButton() {
         <AnimatePresence>
           {open && (
             <motion.div
-              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
               className="absolute right-0 mt-2 w-56 rounded-md border border-border bg-popover backdrop-blur-xl shadow-xl p-1 z-50"
             >
               <button
@@ -96,17 +100,25 @@ export function WalletButton() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             className="absolute right-0 mt-2 w-64 rounded-md border border-border bg-popover backdrop-blur-xl shadow-xl p-1 z-50"
           >
-            <button onClick={tryMetaMask} className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded hover:bg-surface-2 text-left">
+            <button
+              onClick={tryMetaMask}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded hover:bg-surface-2 text-left"
+            >
               <Wallet className="size-4 text-warning" />
               <div>
                 <div className="text-foreground">MetaMask / Injected</div>
                 <div className="text-[11px] text-muted-foreground">Browser extension</div>
               </div>
             </button>
-            <button onClick={tryWalletConnect} className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded hover:bg-surface-2 text-left">
+            <button
+              onClick={tryWalletConnect}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded hover:bg-surface-2 text-left"
+            >
               <QrCode className="size-4 text-accent" />
               <div>
                 <div className="text-foreground">WalletConnect</div>

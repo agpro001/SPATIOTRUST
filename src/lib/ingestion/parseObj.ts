@@ -7,7 +7,9 @@ export async function parseObjFile(file: File): Promise<Point[]> {
   for (const line of text.split(/\r?\n/)) {
     if (!line.startsWith("v ")) continue;
     const cols = line.trim().split(/\s+/);
-    const x = Number(cols[1]); const y = Number(cols[2]); const z = Number(cols[3]);
+    const x = Number(cols[1]);
+    const y = Number(cols[2]);
+    const z = Number(cols[3]);
     if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
       out.push({ x, y, z });
     }

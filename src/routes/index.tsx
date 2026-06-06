@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { ArrowRight, ChevronDown, Boxes, Sparkles, Zap, Layers, Cpu, Globe, Shield } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  Boxes,
+  Sparkles,
+  Zap,
+  Layers,
+  Cpu,
+  Globe,
+  Shield,
+} from "lucide-react";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { Hero3D } from "@/components/landing/Hero3D";
 import { PipelineScroll } from "@/components/landing/PipelineScroll";
@@ -16,9 +26,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "SpatioTrust — Verify Reality Before You Release Capital" },
-      { name: "description", content: "A decentralized spatial oracle network: validate real-world 3D point clouds, attest with zk-style commitments, and publish on-chain — powered by Gemini Vision." },
+      {
+        name: "description",
+        content:
+          "A decentralized spatial oracle network: validate real-world 3D point clouds, attest with zk-style commitments, and publish on-chain — powered by Gemini Vision.",
+      },
       { property: "og:title", content: "SpatioTrust — Decentralized Spatial Oracle Network" },
-      { property: "og:description", content: "Validate real-world 3D environments before releasing DeFi capital. AI-powered ingestion, deterministic validation, on-chain attestation." },
+      {
+        property: "og:description",
+        content:
+          "Validate real-world 3D environments before releasing DeFi capital. AI-powered ingestion, deterministic validation, on-chain attestation.",
+      },
     ],
   }),
   component: Landing,
@@ -48,7 +66,10 @@ function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
   return (
-    <section ref={ref} className="relative h-screen min-h-[680px] flex items-center justify-center overflow-hidden">
+    <section
+      ref={ref}
+      className="relative h-screen min-h-[680px] flex items-center justify-center overflow-hidden"
+    >
       <Hero3D />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background" />
       <motion.div style={{ y, opacity }} className="relative z-10 text-center px-5 max-w-4xl">
@@ -66,8 +87,11 @@ function Hero() {
           transition={{ delay: 0.35, duration: 0.7 }}
           className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mt-6 leading-[0.95]"
         >
-          Verify Reality.<br />
-          <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Release Capital.</span>
+          Verify Reality.
+          <br />
+          <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            Release Capital.
+          </span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -75,8 +99,8 @@ function Hero() {
           transition={{ delay: 0.55 }}
           className="text-lg md:text-xl text-muted-foreground mt-6 max-w-2xl mx-auto"
         >
-          A decentralized spatial oracle that validates real-world 3D environments —
-          point clouds, photos, blueprints — before your smart contract pays out a single wei.
+          A decentralized spatial oracle that validates real-world 3D environments — point clouds,
+          photos, blueprints — before your smart contract pays out a single wei.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -90,7 +114,9 @@ function Hero() {
             </FxButton>
           </Link>
           <a href="#how">
-            <FxButton size="lg" variant="secondary">How it works</FxButton>
+            <FxButton size="lg" variant="secondary">
+              How it works
+            </FxButton>
           </a>
         </motion.div>
       </motion.div>
@@ -106,9 +132,21 @@ function Hero() {
 }
 
 const features = [
-  { icon: Boxes, title: "Universal Ingest", desc: "JSON, CSV, PLY, OBJ, images, PDFs — anything you can scan, we can validate. Vision-powered fallback via Gemini." },
-  { icon: Cpu, title: "Multi-Agent Consensus", desc: "Deterministic AABB + gravity + anomaly heuristics replicated across a simulated oracle quorum." },
-  { icon: Shield, title: "ZK Attestation", desc: "Canonical sha-256 commitment — drop-in for a real Groth16 / PLONK proof when you're ready to ship." },
+  {
+    icon: Boxes,
+    title: "Universal Ingest",
+    desc: "JSON, CSV, PLY, OBJ, images, PDFs — anything you can scan, we can validate. Vision-powered fallback via Gemini.",
+  },
+  {
+    icon: Cpu,
+    title: "Multi-Agent Consensus",
+    desc: "Deterministic AABB + gravity + anomaly heuristics replicated across a simulated oracle quorum.",
+  },
+  {
+    icon: Shield,
+    title: "ZK Attestation",
+    desc: "Canonical sha-256 commitment — drop-in for a real Groth16 / PLONK proof when you're ready to ship.",
+  },
 ];
 
 function Features() {
@@ -121,8 +159,12 @@ function Features() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">capabilities</div>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">An oracle for the physical world</h2>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            capabilities
+          </div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">
+            An oracle for the physical world
+          </h2>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {features.map((f, i) => {
@@ -156,8 +198,16 @@ function Features() {
 const stack = [
   { icon: Layers, name: "TanStack Start", desc: "Edge-rendered React 19 on Cloudflare Workers" },
   { icon: Zap, name: "react-three-fiber", desc: "GPU-instanced point cloud viewport with bloom" },
-  { icon: Sparkles, name: "Gemini 2.0", desc: "Vision-driven structure inference + streaming chat" },
-  { icon: Globe, name: "Ethers + WalletConnect", desc: "Sepolia attestation publishing for any wallet" },
+  {
+    icon: Sparkles,
+    name: "Gemini 2.0",
+    desc: "Vision-driven structure inference + streaming chat",
+  },
+  {
+    icon: Globe,
+    name: "Ethers + WalletConnect",
+    desc: "Sepolia attestation publishing for any wallet",
+  },
 ];
 
 function Stack() {
@@ -165,8 +215,12 @@ function Stack() {
     <section id="stack" className="py-32 px-5 md:px-10 border-t border-border/40">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">under the hood</div>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">Built on serious primitives</h2>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            under the hood
+          </div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">
+            Built on serious primitives
+          </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {stack.map((s, i) => {
@@ -233,7 +287,9 @@ function Footer() {
           <span className="font-display font-semibold text-foreground">SpatioTrust</span>
           <span className="font-mono text-[10px] uppercase tracking-widest">v0.9.4</span>
         </div>
-        <div className="font-mono text-[11px]">© {new Date().getFullYear()} · built for the open web</div>
+        <div className="font-mono text-[11px]">
+          © {new Date().getFullYear()} · built for the open web
+        </div>
       </div>
     </footer>
   );

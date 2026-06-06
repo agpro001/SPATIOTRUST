@@ -39,16 +39,24 @@ export const Route = createFileRoute("/api/ai-vision")({
           });
           const text = v.raw;
           // Strip any accidental code fences
-          const cleaned = text.trim().replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
+          const cleaned = text
+            .trim()
+            .replace(/^```(?:json)?/, "")
+            .replace(/```$/, "")
+            .trim();
           let parsed: any;
-          try { parsed = JSON.parse(cleaned); }
-          catch (e) {
+          try {
+            parsed = JSON.parse(cleaned);
+          } catch (e) {
             console.error("Vision response not JSON:", text.slice(0, 300));
             return json({ error: "Vision model returned non-JSON" }, 500);
           }
           const pts: any[] = Array.isArray(parsed?.points) ? parsed.points : [];
           const points = pts
-            .filter((p) => p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number")
+            .filter(
+              (p) =>
+                p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number",
+            )
             .map((p) => ({ x: p.x, y: p.y, z: p.z }));
           if (points.length < 20) {
             return json({ error: "Vision model did not return enough points" }, 500);
@@ -65,7 +73,8 @@ export const Route = createFileRoute("/api/ai-vision")({
 
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
-    status, headers: { "Content-Type": "application/json", ...corsHeaders },
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders },
   });
 }
 

@@ -6,12 +6,7 @@ import { parseObjFile } from "./parseObj";
 import { parseGlbFile } from "./parseGlb";
 import { inferPointCloudFromImage, inferPointCloudFromBlob } from "./visionInfer";
 
-export type IngestionPhase =
-  | "decoding"
-  | "parsing"
-  | "rendering-pdf"
-  | "ai-inference"
-  | "done";
+export type IngestionPhase = "decoding" | "parsing" | "rendering-pdf" | "ai-inference" | "done";
 
 export type IngestionResult = {
   points: Point[];
@@ -38,7 +33,8 @@ async function renderPdfFirstPage(file: File): Promise<Blob> {
   const page = await doc.getPage(1);
   const viewport = page.getViewport({ scale: 1.5 });
   const canvas = document.createElement("canvas");
-  canvas.width = viewport.width; canvas.height = viewport.height;
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
   const ctx = canvas.getContext("2d")!;
   await page.render({ canvasContext: ctx, viewport, canvas }).promise;
   return await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), "image/png"));
@@ -87,6 +83,6 @@ export async function ingestFile(file: File, onProgress?: ProgressFn): Promise<I
 
   // Unknown — try AI as a last resort if it looks small + readable
   throw new Error(
-    `Unsupported format ".${ext || mime || "?"}". Try JSON, CSV, XYZ, PLY, OBJ, GLB/GLTF, or an image / PDF.`
+    `Unsupported format ".${ext || mime || "?"}". Try JSON, CSV, XYZ, PLY, OBJ, GLB/GLTF, or an image / PDF.`,
   );
 }

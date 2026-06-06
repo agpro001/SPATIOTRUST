@@ -3,10 +3,26 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Upload, Cpu, ShieldCheck, Radio } from "lucide-react";
 
 const steps = [
-  { icon: Upload, title: "Ingest", desc: "Drop any spatial file. We auto-detect JSON, CSV, PLY, OBJ, images & PDFs." },
-  { icon: Cpu, title: "Validate", desc: "Multi-agent quorum runs AABB + gravity + anomaly heuristics off-chain." },
-  { icon: ShieldCheck, title: "Attest", desc: "Deterministic sha-256 over the canonicalized cloud — a mock zk-proof." },
-  { icon: Radio, title: "Publish", desc: "Sign and broadcast the attestation on Sepolia via MetaMask or WalletConnect." },
+  {
+    icon: Upload,
+    title: "Ingest",
+    desc: "Drop any spatial file. We auto-detect JSON, CSV, PLY, OBJ, images & PDFs.",
+  },
+  {
+    icon: Cpu,
+    title: "Validate",
+    desc: "Multi-agent quorum runs AABB + gravity + anomaly heuristics off-chain.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Attest",
+    desc: "Deterministic sha-256 over the canonicalized cloud — a mock zk-proof.",
+  },
+  {
+    icon: Radio,
+    title: "Publish",
+    desc: "Sign and broadcast the attestation on Sepolia via MetaMask or WalletConnect.",
+  },
 ];
 
 export function PipelineScroll() {
@@ -18,10 +34,15 @@ export function PipelineScroll() {
     <section id="how" ref={ref} className="relative py-32 px-5 md:px-10">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">pipeline</div>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">How it works</h2>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            pipeline
+          </div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 tracking-tight">
+            How it works
+          </h2>
           <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            Four stages, all deterministic, all observable. No black boxes between the physical world and your smart contract.
+            Four stages, all deterministic, all observable. No black boxes between the physical
+            world and your smart contract.
           </p>
         </div>
 
@@ -52,7 +73,9 @@ export function PipelineScroll() {
                     </span>
                   </div>
                   <h3 className="font-display font-semibold text-lg mt-4">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-2 max-w-[200px] mx-auto">{s.desc}</p>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-[200px] mx-auto">
+                    {s.desc}
+                  </p>
                 </motion.div>
               );
             })}
