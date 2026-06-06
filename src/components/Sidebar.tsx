@@ -16,7 +16,9 @@ export function Sidebar() {
       <div className="px-5 py-5 border-b border-border flex items-center gap-3">
         <BrandLogo size={36} />
         <div>
-          <div className="font-display font-semibold tracking-tight text-foreground">SpatioTrust</div>
+          <div className="font-display font-semibold tracking-tight text-foreground">
+            SpatioTrust
+          </div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Spatial Oracle Net
           </div>
@@ -33,18 +35,20 @@ export function Sidebar() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-            <Link
-              to={it.to}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors border ${
-                active
-                  ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_24px_-12px_var(--primary-glow)]"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              }`}
-            >
-              <Icon className="size-4" />
-              <span className="tracking-wide">{it.label}</span>
-              {active && <span className="ml-auto size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary-glow)]" />}
-            </Link>
+              <Link
+                to={it.to}
+                className={`group flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors border ${
+                  active
+                    ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_24px_-12px_var(--primary-glow)]"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                }`}
+              >
+                <Icon className="size-4" />
+                <span className="tracking-wide">{it.label}</span>
+                {active && (
+                  <span className="ml-auto size-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary-glow)]" />
+                )}
+              </Link>
             </motion.div>
           );
         })}

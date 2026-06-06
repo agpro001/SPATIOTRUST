@@ -20,28 +20,46 @@ function loadLogs(): RunLog[] {
     const raw = localStorage.getItem(LOG_KEY);
     if (!raw) return [];
     return JSON.parse(raw) as RunLog[];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 function saveLogs(logs: RunLog[]) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, 200))); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(LOG_KEY, JSON.stringify(logs.slice(0, 200)));
+  } catch {
+    /* ignore */
+  }
 }
 function loadThresh(): { baseSupportTolerance: number; confidenceSensitivity: number } {
-  if (typeof window === "undefined") return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
+  if (typeof window === "undefined")
+    return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
   try {
     const raw = localStorage.getItem(THRESH_KEY);
     if (!raw) return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
     const j = JSON.parse(raw);
     return {
       baseSupportTolerance: Number.isFinite(j.baseSupportTolerance) ? j.baseSupportTolerance : 0.15,
-      confidenceSensitivity: Number.isFinite(j.confidenceSensitivity) ? j.confidenceSensitivity : 0.7,
+      confidenceSensitivity: Number.isFinite(j.confidenceSensitivity)
+        ? j.confidenceSensitivity
+        : 0.7,
     };
-  } catch { return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 }; }
+  } catch {
+    return { baseSupportTolerance: 0.15, confidenceSensitivity: 0.7 };
+  }
 }
 
 export type IngestPhase =
-  | "idle" | "reading" | "decoding" | "parsing"
-  | "rendering-pdf" | "vision" | "rendering" | "validating" | "done";
+  | "idle"
+  | "reading"
+  | "decoding"
+  | "parsing"
+  | "rendering-pdf"
+  | "vision"
+  | "rendering"
+  | "validating"
+  | "done";
 
 export type AppState = {
   points: Point[] | null;
@@ -85,11 +103,15 @@ export const useApp = create<AppState>((set) => ({
   isValidating: false,
   activeStepIndex: -1,
   terminalLines: [
-    { id: "boot", text: "[boot] spatiotrust oracle v0.9.4 — awaiting spatial payload …", tone: "info" },
+    {
+      id: "boot",
+      text: "[boot] spatiotrust oracle v0.9.4 — awaiting spatial payload …",
+      tone: "info",
+    },
   ],
   logs: loadLogs(),
   wallet: null,
-  wcProjectId: typeof window !== "undefined" ? localStorage.getItem("spatio:wc") ?? "" : "",
+  wcProjectId: typeof window !== "undefined" ? (localStorage.getItem("spatio:wc") ?? "") : "",
   autoNarrate: true,
   ingestPhase: "idle",
   ingestPct: 0,
@@ -110,16 +132,18 @@ export const useApp = create<AppState>((set) => ({
   clearTerminal: () =>
     set({ terminalLines: [{ id: "clr", text: "[oracle] terminal cleared.", tone: "info" }] }),
   setResult: (result) => set({ result, isValidating: false, activeStepIndex: -1 }),
-  addLog: (log) => set((s) => {
-    const logs = [log, ...s.logs].slice(0, 200);
-    saveLogs(logs);
-    return { logs };
-  }),
-  attachTx: (id, tx) => set((s) => {
-    const logs = s.logs.map((l) => (l.id === id ? { ...l, txHash: tx } : l));
-    saveLogs(logs);
-    return { logs };
-  }),
+  addLog: (log) =>
+    set((s) => {
+      const logs = [log, ...s.logs].slice(0, 200);
+      saveLogs(logs);
+      return { logs };
+    }),
+  attachTx: (id, tx) =>
+    set((s) => {
+      const logs = s.logs.map((l) => (l.id === id ? { ...l, txHash: tx } : l));
+      saveLogs(logs);
+      return { logs };
+    }),
   setWallet: (wallet) => set({ wallet }),
   setWcProjectId: (id) => {
     if (typeof window !== "undefined") localStorage.setItem("spatio:wc", id);
@@ -135,7 +159,9 @@ export const useApp = create<AppState>((set) => ({
         const raw = localStorage.getItem(THRESH_KEY);
         const cur = raw ? JSON.parse(raw) : {};
         localStorage.setItem(THRESH_KEY, JSON.stringify({ ...cur, baseSupportTolerance: v }));
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     set({ baseSupportTolerance: v });
   },
@@ -145,9 +171,14 @@ export const useApp = create<AppState>((set) => ({
         const raw = localStorage.getItem(THRESH_KEY);
         const cur = raw ? JSON.parse(raw) : {};
         localStorage.setItem(THRESH_KEY, JSON.stringify({ ...cur, confidenceSensitivity: v }));
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     set({ confidenceSensitivity: v });
   },
-  clearLogs: () => { saveLogs([]); set({ logs: [] }); },
+  clearLogs: () => {
+    saveLogs([]);
+    set({ logs: [] });
+  },
 }));

@@ -6,7 +6,9 @@ export async function parsePlyFile(file: File): Promise<Point[]> {
   const lines = text.split(/\r?\n/);
   let vertexCount = 0;
   let headerEnd = -1;
-  let xIdx = -1, yIdx = -1, zIdx = -1;
+  let xIdx = -1,
+    yIdx = -1,
+    zIdx = -1;
   let propIdx = 0;
   let inVertex = false;
   for (let i = 0; i < lines.length; i++) {
@@ -16,7 +18,8 @@ export async function parsePlyFile(file: File): Promise<Point[]> {
     }
     if (l.startsWith("element vertex")) {
       vertexCount = parseInt(l.split(/\s+/)[2], 10);
-      inVertex = true; propIdx = 0;
+      inVertex = true;
+      propIdx = 0;
     } else if (l.startsWith("element")) {
       inVertex = false;
     } else if (inVertex && l.startsWith("property")) {
@@ -36,7 +39,9 @@ export async function parsePlyFile(file: File): Promise<Point[]> {
   const out: Point[] = [];
   for (let i = headerEnd; i < headerEnd + vertexCount && i < lines.length; i++) {
     const cols = lines[i].trim().split(/\s+/);
-    const x = Number(cols[xIdx]); const y = Number(cols[yIdx]); const z = Number(cols[zIdx]);
+    const x = Number(cols[xIdx]);
+    const y = Number(cols[yIdx]);
+    const z = Number(cols[zIdx]);
     if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
       out.push({ x, y, z });
     }

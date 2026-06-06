@@ -12,7 +12,10 @@ export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
       { title: "SpatioTrust · Mission Control" },
-      { name: "description", content: "Operate the SpatioTrust spatial oracle: ingest, validate, attest, publish." },
+      {
+        name: "description",
+        content: "Operate the SpatioTrust spatial oracle: ingest, validate, attest, publish.",
+      },
     ],
   }),
   component: Dashboard,
@@ -33,16 +36,28 @@ function Dashboard() {
     >
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">mission control</div>
-          <h1 className="font-display text-3xl font-bold tracking-tight mt-1">Spatial Oracle Dashboard</h1>
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            mission control
+          </div>
+          <h1 className="font-display text-3xl font-bold tracking-tight mt-1">
+            Spatial Oracle Dashboard
+          </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Drop a point cloud, image, or PDF. We validate, attest, and prepare it for on-chain publication.
+            Drop a point cloud, image, or PDF. We validate, attest, and prepare it for on-chain
+            publication.
           </p>
         </div>
         <div className="flex gap-3 text-[11px] font-mono">
           <Pill label="payload" value={scenarioLabel ?? "—"} />
-          <Pill label="status" value={isValidating ? "PROCESSING" : result?.status?.toUpperCase() ?? "IDLE"} tone={result?.status} />
-          <Pill label="confidence" value={result ? `${Math.round(result.confidence * 100)}%` : "—"} />
+          <Pill
+            label="status"
+            value={isValidating ? "PROCESSING" : (result?.status?.toUpperCase() ?? "IDLE")}
+            tone={result?.status}
+          />
+          <Pill
+            label="confidence"
+            value={result ? `${Math.round(result.confidence * 100)}%` : "—"}
+          />
         </div>
       </header>
 
@@ -76,8 +91,8 @@ function Pill({ label, value, tone }: { label: string; value: string; tone?: "pa
     tone === "pass"
       ? "border-primary/40 text-primary bg-primary/10"
       : tone === "fail"
-      ? "border-destructive/40 text-destructive bg-destructive/10"
-      : "border-border text-foreground bg-surface";
+        ? "border-destructive/40 text-destructive bg-destructive/10"
+        : "border-border text-foreground bg-surface";
   return (
     <div className={`rounded-md px-3 py-1.5 border ${cls}`}>
       <div className="text-[9px] uppercase tracking-widest text-muted-foreground">{label}</div>

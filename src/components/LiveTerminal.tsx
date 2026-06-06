@@ -27,7 +27,10 @@ export function LiveTerminal() {
           clear
         </button>
       </div>
-      <div ref={ref} className="flex-1 overflow-auto p-3 font-mono text-[12px] leading-relaxed min-h-[180px] max-h-[260px]">
+      <div
+        ref={ref}
+        className="flex-1 overflow-auto p-3 font-mono text-[12px] leading-relaxed min-h-[180px] max-h-[260px]"
+      >
         {lines.map((l) => (
           <div
             key={l.id}
@@ -35,8 +38,8 @@ export function LiveTerminal() {
               l.tone === "ok"
                 ? "text-primary"
                 : l.tone === "fail"
-                ? "text-destructive"
-                : "text-terminal-fg/85"
+                  ? "text-destructive"
+                  : "text-terminal-fg/85"
             }
           >
             <span className="text-muted-foreground mr-2">›</span>

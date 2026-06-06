@@ -12,8 +12,17 @@ export function DropZone() {
   const [dragging, setDragging] = useState(false);
   const [lastSource, setLastSource] = useState<IngestionResult["source"] | null>(null);
   const {
-    isValidating, setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog,
-    setIngest, resetIngest, baseSupportTolerance, confidenceSensitivity,
+    isValidating,
+    setPoints,
+    startValidation,
+    pushTerminal,
+    setStepIndex,
+    setResult,
+    addLog,
+    setIngest,
+    resetIngest,
+    baseSupportTolerance,
+    confidenceSensitivity,
   } = useApp();
   const ingestPhase = useApp((s) => s.ingestPhase);
 
@@ -22,7 +31,9 @@ export function DropZone() {
       setPoints(points, label);
       startValidation();
       setIngest("validating", -1, "validating with oracle quorum …");
-      pushTerminal(`[oracle] payload accepted · ${points.length.toLocaleString()} points · scenario=${label}`);
+      pushTerminal(
+        `[oracle] payload accepted · ${points.length.toLocaleString()} points · scenario=${label}`,
+      );
 
       // Drive the pipeline state machine in sync with the 2 s server delay
       const timers: ReturnType<typeof setTimeout>[] = [];
@@ -31,7 +42,7 @@ export function DropZone() {
           setTimeout(() => {
             setStepIndex(i);
             pushTerminal(`${step.label} — ${step.detail}`);
-          }, step.delayMs)
+          }, step.delayMs),
         );
       });
 
@@ -55,7 +66,10 @@ export function DropZone() {
           pushTerminal(`[oracle] ✓ INTEGRITY VERIFIED · confidence=${json.confidence}`, "ok");
         } else {
           pushTerminal(`[oracle] ✗ SPATIAL FRAUD DETECTED · confidence=${json.confidence}`, "fail");
-          pushTerminal(`[circuit-breaker] on-chain release blocked. Manual override required.`, "fail");
+          pushTerminal(
+            `[circuit-breaker] on-chain release blocked. Manual override required.`,
+            "fail",
+          );
         }
         pushTerminal(`[zk] attestation = ${json.zk_mock_hash}`, "ok");
         setResult(json);
@@ -75,8 +89,18 @@ export function DropZone() {
         resetIngest();
       }
     },
-    [setPoints, startValidation, pushTerminal, setStepIndex, setResult, addLog,
-     setIngest, resetIngest, baseSupportTolerance, confidenceSensitivity]
+    [
+      setPoints,
+      startValidation,
+      pushTerminal,
+      setStepIndex,
+      setResult,
+      addLog,
+      setIngest,
+      resetIngest,
+      baseSupportTolerance,
+      confidenceSensitivity,
+    ],
   );
 
   const onFile = useCallback(
@@ -85,10 +109,15 @@ export function DropZone() {
         setIngest("reading", 0.02, `reading ${file.name} …`);
         const res = await ingestFile(file, (phase, msg, pct) => {
           const mapped =
-            phase === "decoding" ? "decoding" :
-            phase === "parsing" ? "parsing" :
-            phase === "rendering-pdf" ? "rendering-pdf" :
-            phase === "ai-inference" ? "vision" : "decoding";
+            phase === "decoding"
+              ? "decoding"
+              : phase === "parsing"
+                ? "parsing"
+                : phase === "rendering-pdf"
+                  ? "rendering-pdf"
+                  : phase === "ai-inference"
+                    ? "vision"
+                    : "decoding";
           setIngest(mapped as any, pct, msg);
         });
         setLastSource(res.source);
@@ -101,7 +130,7 @@ export function DropZone() {
         toast.error(e instanceof Error ? e.message : "Could not parse file");
       }
     },
-    [runValidation, setIngest, resetIngest]
+    [runValidation, setIngest, resetIngest],
   );
 
   const loadScenario = useCallback(
@@ -109,12 +138,15 @@ export function DropZone() {
       try {
         const r = await fetch(`/api/mock/${scenario}`);
         const { points } = (await r.json()) as { points: Point[] };
-        await runValidation(points, scenario === "valid" ? "valid_structure.json" : "fraudulent_structure.json");
+        await runValidation(
+          points,
+          scenario === "valid" ? "valid_structure.json" : "fraudulent_structure.json",
+        );
       } catch (e) {
         toast.error("Could not load sample scenario");
       }
     },
-    [runValidation]
+    [runValidation],
   );
 
   return (
@@ -130,10 +162,14 @@ export function DropZone() {
 
       <motion.label
         htmlFor="spatio-file"
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => {
-          e.preventDefault(); setDragging(false);
+          e.preventDefault();
+          setDragging(false);
           const f = e.dataTransfer.files?.[0];
           if (f) onFile(f);
         }}
@@ -162,9 +198,7 @@ export function DropZone() {
           <Upload className="mx-auto size-7 text-primary/80" />
         )}
         <div className="mt-3 text-sm text-foreground">
-          {ingestPhase !== "idle"
-            ? "Processing payload …"
-            : "Drop any file — we'll figure it out"}
+          {ingestPhase !== "idle" ? "Processing payload …" : "Drop any file — we'll figure it out"}
         </div>
         <div className="text-xs text-muted-foreground font-mono mt-1">
           JSON · CSV · XYZ · PLY · OBJ · GLB · PNG · JPG · PDF
@@ -177,7 +211,8 @@ export function DropZone() {
               exit={{ opacity: 0 }}
               className="mt-3 inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent/15 border border-accent/40 text-accent"
             >
-              <Sparkles className="size-3" /> source: {lastSource}{(lastSource === "image" || lastSource === "pdf") && " · ai-inferred"}
+              <Sparkles className="size-3" /> source: {lastSource}
+              {(lastSource === "image" || lastSource === "pdf") && " · ai-inferred"}
             </motion.div>
           )}
         </AnimatePresence>
@@ -195,9 +230,7 @@ export function DropZone() {
             <Boxes className="size-4" />
             <div className="font-semibold text-sm">Load Valid Scenario</div>
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            6×6 building, base on y=0
-          </div>
+          <div className="text-[11px] text-muted-foreground mt-1">6×6 building, base on y=0</div>
         </button>
         <button
           disabled={isValidating}
@@ -208,9 +241,7 @@ export function DropZone() {
             <AlertTriangle className="size-4" />
             <div className="font-semibold text-sm">Load Fraud Scenario</div>
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            floating mass · no support
-          </div>
+          <div className="text-[11px] text-muted-foreground mt-1">floating mass · no support</div>
         </button>
       </div>
     </div>

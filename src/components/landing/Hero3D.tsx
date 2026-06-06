@@ -8,7 +8,9 @@ import { dpr, perfTier, isLowPower } from "@/lib/perf";
 /** Generates a building-shaped point cloud (procedural). */
 function buildingPoints(): Float32Array {
   const out: number[] = [];
-  const w = 3, d = 3, h = 4.5;
+  const w = 3,
+    d = 3,
+    h = 4.5;
   const wallN = perfTier === "low" ? 700 : perfTier === "mid" ? 1200 : 1800;
   const roofN = perfTier === "low" ? 200 : perfTier === "mid" ? 350 : 500;
   const baseN = perfTier === "low" ? 280 : perfTier === "mid" ? 480 : 700;
@@ -17,20 +19,30 @@ function buildingPoints(): Float32Array {
     const face = Math.floor(Math.random() * 4);
     const u = Math.random();
     const y = Math.random() * h;
-    let x = 0, z = 0;
-    if (face === 0) { x = -w/2 + u * w; z = -d/2; }
-    else if (face === 1) { x = -w/2 + u * w; z = d/2; }
-    else if (face === 2) { x = -w/2; z = -d/2 + u * d; }
-    else { x = w/2; z = -d/2 + u * d; }
+    let x = 0,
+      z = 0;
+    if (face === 0) {
+      x = -w / 2 + u * w;
+      z = -d / 2;
+    } else if (face === 1) {
+      x = -w / 2 + u * w;
+      z = d / 2;
+    } else if (face === 2) {
+      x = -w / 2;
+      z = -d / 2 + u * d;
+    } else {
+      x = w / 2;
+      z = -d / 2 + u * d;
+    }
     out.push(x, y, z);
   }
   // Roof
   for (let i = 0; i < roofN; i++) {
-    out.push(-w/2 + Math.random() * w, h + Math.random() * 0.05, -d/2 + Math.random() * d);
+    out.push(-w / 2 + Math.random() * w, h + Math.random() * 0.05, -d / 2 + Math.random() * d);
   }
   // Base
   for (let i = 0; i < baseN; i++) {
-    out.push(-w/2 + Math.random() * w, 0, -d/2 + Math.random() * d);
+    out.push(-w / 2 + Math.random() * w, 0, -d / 2 + Math.random() * d);
   }
   return new Float32Array(out);
 }
@@ -44,9 +56,9 @@ function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: num
     for (let i = 0; i < positions.length; i += 3) {
       const y = positions[i + 1];
       const t = Math.min(1, y / 5);
-      c[i] = 0.25 + t * 0.10;
-      c[i + 1] = 0.85 + t * 0.10;
-      c[i + 2] = 0.50 + (1 - t) * 0.40;
+      c[i] = 0.25 + t * 0.1;
+      c[i + 1] = 0.85 + t * 0.1;
+      c[i + 2] = 0.5 + (1 - t) * 0.4;
     }
     return c;
   }, [positions]);
@@ -65,7 +77,15 @@ function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: num
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
-      <pointsMaterial ref={matRef} vertexColors size={0.05} sizeAttenuation transparent opacity={0.95} depthWrite={false} />
+      <pointsMaterial
+        ref={matRef}
+        vertexColors
+        size={0.05}
+        sizeAttenuation
+        transparent
+        opacity={0.95}
+        depthWrite={false}
+      />
     </points>
   );
 }
@@ -87,7 +107,14 @@ function Particles() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#5cffaa" size={0.02} sizeAttenuation transparent opacity={0.4} depthWrite={false} />
+      <pointsMaterial
+        color="#5cffaa"
+        size={0.02}
+        sizeAttenuation
+        transparent
+        opacity={0.4}
+        depthWrite={false}
+      />
     </points>
   );
 }

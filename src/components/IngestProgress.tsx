@@ -13,7 +13,8 @@ export function IngestProgress() {
   const visible = phase !== "idle" && phase !== "done";
   const indeterminate = pct < 0;
   const clamped = Math.max(0, Math.min(1, pct));
-  const r = 22, c = 2 * Math.PI * r;
+  const r = 22,
+    c = 2 * Math.PI * r;
 
   return (
     <AnimatePresence>
@@ -28,7 +29,10 @@ export function IngestProgress() {
             <svg viewBox="0 0 56 56" className="size-12 -rotate-90">
               <circle cx="28" cy="28" r={r} fill="none" stroke="var(--border)" strokeWidth={3} />
               <motion.circle
-                cx="28" cy="28" r={r} fill="none"
+                cx="28"
+                cy="28"
+                r={r}
+                fill="none"
                 stroke="var(--primary)"
                 strokeWidth={3}
                 strokeLinecap="round"

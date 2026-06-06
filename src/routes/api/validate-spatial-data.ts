@@ -8,10 +8,12 @@ const PointSchema = z.object({
   z: z.number().finite(),
 });
 
-const OptsSchema = z.object({
-  baseSupportTolerance: z.number().min(0).max(0.5).optional(),
-  confidenceSensitivity: z.number().min(0).max(1).optional(),
-}).optional();
+const OptsSchema = z
+  .object({
+    baseSupportTolerance: z.number().min(0).max(0.5).optional(),
+    confidenceSensitivity: z.number().min(0).max(1).optional(),
+  })
+  .optional();
 
 const BodySchema = z.union([
   z.array(PointSchema).min(4).max(200_000),

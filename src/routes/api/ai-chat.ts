@@ -36,8 +36,8 @@ export const Route = createFileRoute("/api/ai-chat")({
             mode === "explainer"
               ? "\n\nMODE: ANOMALY EXPLAINER. Output EXACTLY 3 bullets, each ≤ 22 words, naming the triggered heuristic (base support, centroid alignment, or floating mass) and the metric that proves it. No preamble."
               : mode === "fix"
-              ? "\n\nMODE: FIX SUGGESTER. Output EXACTLY 3 numbered actions (≤ 20 words each) the operator can take on the source data to flip status from fail → pass. Reference at least one metric per action. No preamble."
-              : "";
+                ? "\n\nMODE: FIX SUGGESTER. Output EXACTLY 3 numbered actions (≤ 20 words each) the operator can take on the source data to flip status from fail → pass. Reference at least one metric per action. No preamble."
+                : "";
 
           const sys =
             SYSTEM_PROMPT +
@@ -58,14 +58,12 @@ export const Route = createFileRoute("/api/ai-chat")({
             async start(controller) {
               try {
                 for await (const delta of chat.iterate()) {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`)
-                  );
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
                 }
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               } catch (e) {
                 controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`)
+                  encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`),
                 );
               } finally {
                 controller.close();

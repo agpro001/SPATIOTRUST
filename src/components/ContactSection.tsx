@@ -42,7 +42,13 @@ function Knot() {
 /* Brand SVG icons (Instagram + X, since lucide ships Mail but not these in a brand-safe way) */
 function InstagramGlyph({ className = "size-6" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <rect x="3" y="3" width="18" height="18" rx="5" />
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
@@ -66,9 +72,21 @@ type Card = {
 };
 
 const CARDS: Card[] = [
-  { label: "Email",     value: "adityagupta1234.in@gmail.com", href: "mailto:adityagupta1234.in@gmail.com", Icon: (p) => <Mail {...p} />, hue: "var(--primary)" },
-  { label: "Instagram", value: "@agpro001",                    href: "https://instagram.com/agpro001",      Icon: InstagramGlyph,         hue: "#ec4899" },
-  { label: "X",         value: "@agpro001",                    href: "https://x.com/agpro001",              Icon: XGlyph,                 hue: "#a78bfa" },
+  {
+    label: "Email",
+    value: "adityagupta1234.in@gmail.com",
+    href: "mailto:adityagupta1234.in@gmail.com",
+    Icon: (p) => <Mail {...p} />,
+    hue: "var(--primary)",
+  },
+  {
+    label: "Instagram",
+    value: "@agpro001",
+    href: "https://instagram.com/agpro001",
+    Icon: InstagramGlyph,
+    hue: "#ec4899",
+  },
+  { label: "X", value: "@agpro001", href: "https://x.com/agpro001", Icon: XGlyph, hue: "#a78bfa" },
 ];
 
 export function ContactSection() {
@@ -98,7 +116,9 @@ export function ContactSection() {
           viewport={{ once: true, margin: "-80px" }}
           className="text-center mb-12"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">contact</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+            contact
+          </div>
           <h2 className="font-display text-4xl md:text-5xl font-bold tracking-tighter mt-3">
             Reach the{" "}
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -195,7 +215,11 @@ function KineticWord({ word }: { word: string }) {
           whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 + i * 0.06, type: "spring", stiffness: 220, damping: 14 }}
-          whileHover={{ y: -4, color: "var(--primary)", transition: { type: "spring", stiffness: 350 } }}
+          whileHover={{
+            y: -4,
+            color: "var(--primary)",
+            transition: { type: "spring", stiffness: 350 },
+          }}
           className="inline-block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"
           style={{ transformStyle: "preserve-3d" }}
         >

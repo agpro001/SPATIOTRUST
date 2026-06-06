@@ -28,6 +28,7 @@ curl -X POST http://localhost:5000/api/validate-spatial-data \
 Request body: `Array<{x:number,y:number,z:number}>`
 
 Response:
+
 ```json
 {
   "status": "pass" | "fail",

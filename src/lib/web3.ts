@@ -20,7 +20,9 @@ export type WalletState = {
 };
 
 declare global {
-  interface Window { ethereum?: any }
+  interface Window {
+    ethereum?: any;
+  }
 }
 
 export function hasInjected(): boolean {
@@ -45,7 +47,9 @@ export async function connectInjected(): Promise<WalletState> {
 
 export async function connectWalletConnect(projectId: string): Promise<WalletState> {
   if (!projectId || projectId === "REPLACE_ME") {
-    throw new Error("WalletConnect projectId not set. Open Settings to paste your free projectId from cloud.walletconnect.com.");
+    throw new Error(
+      "WalletConnect projectId not set. Open Settings to paste your free projectId from cloud.walletconnect.com.",
+    );
   }
   const mod: any = await import("@walletconnect/ethereum-provider");
   const EthereumProvider = mod.EthereumProvider ?? mod.default ?? mod;
@@ -77,7 +81,10 @@ async function ensureSepolia(eth: any) {
   try {
     const current = await eth.request({ method: "eth_chainId" });
     if (current?.toLowerCase() === SEPOLIA_CHAIN_ID_HEX) return;
-    await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }] });
+    await eth.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: SEPOLIA_CHAIN_ID_HEX }],
+    });
   } catch (err: any) {
     if (err?.code === 4902 || /Unrecognized chain/i.test(err?.message ?? "")) {
       await eth.request({ method: "wallet_addEthereumChain", params: [SEPOLIA_PARAMS] });

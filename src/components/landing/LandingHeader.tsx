@@ -16,26 +16,39 @@ export function LandingHeader() {
         <BrandLogo size={40} />
         <div className="flex flex-col leading-tight">
           <span className="font-display font-bold tracking-tight">SpatioTrust</span>
-          <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground">spatial oracle net</span>
+          <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-muted-foreground">
+            spatial oracle net
+          </span>
         </div>
       </Link>
       <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-        <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-        <a href="#usecases" className="hover:text-foreground transition-colors">Use cases</a>
-        <a href="#stack" className="hover:text-foreground transition-colors">Stack</a>
-        <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+        <a href="#how" className="hover:text-foreground transition-colors">
+          How it works
+        </a>
+        <a href="#usecases" className="hover:text-foreground transition-colors">
+          Use cases
+        </a>
+        <a href="#stack" className="hover:text-foreground transition-colors">
+          Stack
+        </a>
+        <a href="#faq" className="hover:text-foreground transition-colors">
+          FAQ
+        </a>
       </nav>
       <div className="flex items-center gap-2">
         <a
           href="https://github.com/"
-          target="_blank" rel="noreferrer"
+          target="_blank"
+          rel="noreferrer"
           className="hidden md:grid place-items-center size-9 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
           aria-label="GitHub"
         >
           <Github className="size-4" />
         </a>
         <Link to="/app">
-          <FxButton size="sm" glow>Launch Oracle →</FxButton>
+          <FxButton size="sm" glow>
+            Launch Oracle →
+          </FxButton>
         </Link>
       </div>
     </motion.header>
