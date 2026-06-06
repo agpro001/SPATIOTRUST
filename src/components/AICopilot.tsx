@@ -186,7 +186,7 @@ export function AICopilot() {
         <Canvas
           camera={{ position: [0, 0, 2.4], fov: 45 }}
           dpr={dpr()}
-          frameloop="always"
+          frameloop="demand"
           gl={{ antialias: !isLowPower, powerPreference: "high-performance", alpha: true }}
         >
           <Core tone={tone} />
