@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useApp } from "@/lib/store";
 import { Settings as SettingsIcon, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
@@ -17,6 +18,18 @@ function SettingsPage() {
   const setBaseSupportTolerance = useApp((s) => s.setBaseSupportTolerance);
   const confidenceSensitivity = useApp((s) => s.confidenceSensitivity);
   const setConfidenceSensitivity = useApp((s) => s.setConfidenceSensitivity);
+  const [walletProjectIdDraft, setWalletProjectIdDraft] = useState(wcProjectId);
+
+  useEffect(() => {
+    setWalletProjectIdDraft(wcProjectId);
+  }, [wcProjectId]);
+
+  useEffect(() => {
+    const next = walletProjectIdDraft.trim();
+    if (next === wcProjectId) return;
+    const timeout = window.setTimeout(() => setWcProjectId(next), 350);
+    return () => window.clearTimeout(timeout);
+  }, [walletProjectIdDraft, wcProjectId, setWcProjectId]);
 
   return (
     <div className="p-5 space-y-6 max-w-3xl">
@@ -44,8 +57,9 @@ function SettingsPage() {
           </a>
         </p>
         <input
-          value={wcProjectId}
-          onChange={(e) => setWcProjectId(e.target.value.trim())}
+          value={walletProjectIdDraft}
+          onChange={(e) => setWalletProjectIdDraft(e.target.value)}
+          onBlur={() => setWcProjectId(walletProjectIdDraft.trim())}
           placeholder="WalletConnect projectId"
           className="w-full font-mono text-sm bg-input/60 border border-border rounded-md px-3 py-2 outline-none focus:border-primary/60"
         />
