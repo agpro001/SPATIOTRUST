@@ -5,11 +5,13 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Mail } from "lucide-react";
 import * as THREE from "three";
 import { dpr, isLowPower } from "@/lib/perf";
+import { useInputFocusActive } from "@/hooks/use-input-focus-active";
 
 /* Subtle rotating torus knot in the background */
-function Knot() {
+function Knot({ paused }: { paused: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
+    if (paused) return;
     if (!ref.current) return;
     ref.current.rotation.x = clock.elapsedTime * 0.18;
     ref.current.rotation.y = clock.elapsedTime * 0.24;
@@ -90,6 +92,8 @@ const CARDS: Card[] = [
 ];
 
 export function ContactSection() {
+  const inputFocusActive = useInputFocusActive();
+
   return (
     <section
       id="contact"
@@ -100,10 +104,11 @@ export function ContactSection() {
         <Canvas
           camera={{ position: [0, 0, 5], fov: 50 }}
           dpr={dpr()}
+          frameloop={inputFocusActive ? "demand" : "always"}
           gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
         >
           <Suspense fallback={null}>
-            <Knot />
+            <Knot paused={inputFocusActive} />
           </Suspense>
         </Canvas>
       </div>

@@ -6,14 +6,16 @@ import ReactMarkdown from "react-markdown";
 import * as THREE from "three";
 import { useApp } from "@/lib/store";
 import { dpr, geomDetail, isLowPower } from "@/lib/perf";
+import { useInputFocusActive } from "@/hooks/use-input-focus-active";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 /* Animated icosahedron core for the orb */
-function Core({ tone }: { tone: "idle" | "ok" | "fail" }) {
+function Core({ tone, paused }: { tone: "idle" | "ok" | "fail"; paused: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
   const invalidate = useThree((s) => s.invalidate);
   useFrame(({ clock }) => {
+    if (paused) return;
     if (!ref.current) return;
     ref.current.rotation.x = clock.elapsedTime * 0.6;
     ref.current.rotation.y = clock.elapsedTime * 0.4;
@@ -54,9 +56,46 @@ const MessageBubble = memo(function MessageBubble({
   );
 });
 
+const ChatComposer = memo(function ChatComposer({
+  busy,
+  onSend,
+}: {
+  busy: boolean;
+  onSend: (text: string) => void;
+}) {
+  const [input, setInput] = useState("");
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const text = input.trim();
+        if (text && !busy) {
+          setInput("");
+          onSend(text);
+        }
+      }}
+      className="flex items-center gap-2"
+    >
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Ask the oracle…"
+        className="flex-1 bg-input/60 border border-border rounded-md px-3 py-2 text-sm outline-none focus:border-primary/60 placeholder:text-muted-foreground"
+      />
+      <button
+        type="submit"
+        disabled={busy || !input.trim()}
+        className="rounded-md bg-primary text-primary-foreground px-3 py-2 disabled:opacity-50"
+      >
+        <Send className="size-4" />
+      </button>
+    </form>
+  );
+});
+
 export function AICopilot() {
   const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     {
@@ -68,6 +107,7 @@ export function AICopilot() {
   const result = useApp((s) => s.result);
   const isValidating = useApp((s) => s.isValidating);
   const autoNarrate = useApp((s) => s.autoNarrate);
+  const inputFocusActive = useInputFocusActive();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const tone: "idle" | "ok" | "fail" =
@@ -96,7 +136,6 @@ export function AICopilot() {
     const userMsg: Msg = { role: "user", content: text };
     const next: Msg[] = hidden ? messages : [...messages, userMsg];
     if (!hidden) setMessages(next);
-    setInput("");
     setBusy(true);
     let acc = "";
     try {
@@ -189,7 +228,7 @@ export function AICopilot() {
           frameloop="demand"
           gl={{ antialias: !isLowPower, powerPreference: "high-performance", alpha: true }}
         >
-          <Core tone={tone} />
+          <Core tone={tone} paused={inputFocusActive} />
         </Canvas>
         <span className="absolute -top-1 -right-1 size-3 rounded-full bg-primary animate-pulse" />
       </motion.button>
@@ -285,27 +324,7 @@ export function AICopilot() {
                   </button>
                 ))}
               </div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (input.trim() && !busy) send(input.trim());
-                }}
-                className="flex items-center gap-2"
-              >
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask the oracle…"
-                  className="flex-1 bg-input/60 border border-border rounded-md px-3 py-2 text-sm outline-none focus:border-primary/60 placeholder:text-muted-foreground"
-                />
-                <button
-                  type="submit"
-                  disabled={busy || !input.trim()}
-                  className="rounded-md bg-primary text-primary-foreground px-3 py-2 disabled:opacity-50"
-                >
-                  <Send className="size-4" />
-                </button>
-              </form>
+              <ChatComposer busy={busy} onSend={(text) => void send(text)} />
             </div>
           </motion.div>
         )}

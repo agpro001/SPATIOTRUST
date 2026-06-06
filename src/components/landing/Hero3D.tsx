@@ -4,6 +4,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { dpr, perfTier, isLowPower } from "@/lib/perf";
+import { useInputFocusActive } from "@/hooks/use-input-focus-active";
 
 /** Generates a building-shaped point cloud (procedural). */
 function buildingPoints(): Float32Array {
@@ -47,7 +48,7 @@ function buildingPoints(): Float32Array {
   return new Float32Array(out);
 }
 
-function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: number }> }) {
+function Building({ mouse, paused }: { mouse: React.MutableRefObject<{ x: number; y: number }>; paused: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const matRef = useRef<THREE.PointsMaterial>(null);
   const positions = useMemo(() => buildingPoints(), []);
@@ -64,6 +65,7 @@ function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: num
   }, [positions]);
 
   useFrame(({ clock }) => {
+    if (paused) return;
     if (!ref.current) return;
     const t = clock.elapsedTime;
     ref.current.rotation.y = t * 0.15 + mouse.current.x * 0.6;
@@ -90,7 +92,7 @@ function Building({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: num
   );
 }
 
-function Particles() {
+function Particles({ paused }: { paused: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const positions = useMemo(() => {
     const n = perfTier === "low" ? 220 : perfTier === "mid" ? 400 : 600;
@@ -99,6 +101,7 @@ function Particles() {
     return arr;
   }, []);
   useFrame(({ clock }) => {
+    if (paused) return;
     if (!ref.current) return;
     ref.current.rotation.y = clock.elapsedTime * 0.04;
   });
@@ -122,6 +125,7 @@ function Particles() {
 export function Hero3D() {
   const mouse = useRef({ x: 0, y: 0 });
   const [maxDpr, setMaxDpr] = useState(dpr()[1]);
+  const inputFocusActive = useInputFocusActive();
   return (
     <div
       className="absolute inset-0 gpu-layer"
@@ -134,6 +138,7 @@ export function Hero3D() {
       <Canvas
         dpr={[1, maxDpr]}
         camera={{ position: [6, 3, 9], fov: 50 }}
+        frameloop={inputFocusActive ? "demand" : "always"}
         gl={{ antialias: !isLowPower, alpha: true, powerPreference: "high-performance" }}
       >
         <PerformanceMonitor
@@ -145,9 +150,9 @@ export function Hero3D() {
         <ambientLight intensity={0.4} />
         <pointLight position={[5, 6, 4]} intensity={1.2} color="#5cffaa" />
         <Float speed={1} rotationIntensity={0.05} floatIntensity={0.2}>
-          <Building mouse={mouse} />
+          <Building mouse={mouse} paused={inputFocusActive} />
         </Float>
-        <Particles />
+        <Particles paused={inputFocusActive} />
         {!isLowPower && (
           <EffectComposer>
             <Bloom intensity={1.0} luminanceThreshold={0.4} luminanceSmoothing={0.2} mipmapBlur />

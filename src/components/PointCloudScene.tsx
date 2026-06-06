@@ -5,6 +5,7 @@ import { useMemo, useRef, useEffect } from "react";
 import * as THREE from "three";
 import type { Point, ValidationResult } from "@/lib/validator";
 import { dpr, isLowPower } from "@/lib/perf";
+import { useInputFocusActive } from "@/hooks/use-input-focus-active";
 
 type Props = {
   points: Point[] | null;
@@ -17,7 +18,7 @@ type Props = {
  * Positions + colors live in BufferGeometry attributes (single buffer upload),
  * so heavy clouds don't stutter the React tree.
  */
-function Cloud({ points, result, isValidating }: Props) {
+function Cloud({ points, result, isValidating, paused }: Props & { paused: boolean }) {
   const geomRef = useRef<THREE.BufferGeometry>(null);
   const matRef = useRef<THREE.PointsMaterial>(null);
 
@@ -86,6 +87,7 @@ function Cloud({ points, result, isValidating }: Props) {
 
   // Subtle breathing on point size while validating
   useFrame(({ clock }) => {
+    if (paused) return;
     if (matRef.current) {
       const base = 0.07;
       matRef.current.size = isValidating ? base + Math.sin(clock.elapsedTime * 5) * 0.025 : base;
@@ -141,11 +143,13 @@ function Placeholder() {
 
 export function PointCloudScene(props: Props) {
   const hasPoints = props.points && props.points.length > 0;
+  const inputFocusActive = useInputFocusActive();
   return (
     <div className="relative w-full h-full rounded-md overflow-hidden border border-border bg-terminal-bg/60 scanlines gpu-layer">
       <Canvas
         dpr={dpr()}
         camera={{ position: [10, 8, 12], fov: 45 }}
+        frameloop={inputFocusActive ? "demand" : "always"}
         gl={{ antialias: !isLowPower, alpha: true, powerPreference: "high-performance" }}
       >
         <color attach="background" args={["#0a0f1d"]} />
@@ -161,7 +165,7 @@ export function PointCloudScene(props: Props) {
           fadeStrength={1.2}
           infiniteGrid
         />
-        {hasPoints ? <Cloud {...props} /> : <Placeholder />}
+        {hasPoints ? <Cloud {...props} paused={inputFocusActive} /> : <Placeholder />}
         <OrbitControls enableDamping dampingFactor={0.08} maxDistance={50} minDistance={4} />
         {!isLowPower && (
           <EffectComposer>
