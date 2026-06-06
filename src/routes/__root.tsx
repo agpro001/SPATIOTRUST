@@ -9,6 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { Sidebar } from "@/components/Sidebar";
@@ -189,6 +190,7 @@ function RootComponent() {
         }}
       />
       <SpeedInsights />
+      <Analytics />
     </QueryClientProvider>
   );
 }
