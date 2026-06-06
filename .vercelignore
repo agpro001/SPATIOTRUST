@@ -1,0 +1,9 @@
+backend/
+.tanstack/
+.wrangler/
+.lovable/
+.workspace/
+wrangler.jsonc
+src/server.ts
+src/lib/error-capture.ts
+src/lib/error-page.ts
