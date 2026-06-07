@@ -126,6 +126,14 @@ export function Hero3D() {
   const mouse = useRef({ x: 0, y: 0 });
   const [maxDpr, setMaxDpr] = useState(dpr()[1]);
   const inputFocusActive = useInputFocusActive();
+  // On mobile, fully unmount the WebGL canvas while an input is focused.
+  // The on-screen keyboard resizes the viewport, and keeping a Bloom-enabled
+  // WebGL context alive during that resize can crash the tab (especially on
+  // iOS Safari served from the Vercel SPA build). Desktop keeps it mounted.
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /Android.*Mobile|iPhone|iPod|Mobi/i.test(navigator.userAgent);
+  const suspend = isMobile && inputFocusActive;
   return (
     <div
       className="absolute inset-0 gpu-layer"
@@ -135,6 +143,9 @@ export function Hero3D() {
         mouse.current.y = (e.clientY - r.top) / r.height - 0.5;
       }}
     >
+      {suspend ? (
+        <div className="absolute inset-0 bg-[#06090f]" aria-hidden />
+      ) : (
       <Canvas
         dpr={[1, maxDpr]}
         camera={{ position: [6, 3, 9], fov: 50 }}
@@ -159,6 +170,7 @@ export function Hero3D() {
           </EffectComposer>
         )}
       </Canvas>
+      )}
     </div>
   );
 }
