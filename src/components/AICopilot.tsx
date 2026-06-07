@@ -109,6 +109,13 @@ export function AICopilot() {
   const autoNarrate = useApp((s) => s.autoNarrate);
   const inputFocusActive = useInputFocusActive();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /Android.*Mobile|iPhone|iPod|Mobi/i.test(navigator.userAgent);
+  // Hide the orb's WebGL context while the panel is open on mobile —
+  // it's behind the chat sheet anyway and the freed GPU memory keeps
+  // the on-screen keyboard from crashing the tab on iOS Safari (Vercel SPA).
+  const showOrbCanvas = !(isMobile && open);
 
   const tone: "idle" | "ok" | "fail" =
     result?.status === "pass" ? "ok" : result?.status === "fail" ? "fail" : "idle";
@@ -222,14 +229,20 @@ export function AICopilot() {
         className="fixed bottom-5 right-5 z-40 size-16 rounded-full border border-primary/30 bg-surface/80 backdrop-blur-xl shadow-[0_0_40px_-12px_var(--primary-glow)] overflow-hidden"
         title="SpatioTrust AI co-pilot"
       >
-        <Canvas
-          camera={{ position: [0, 0, 2.4], fov: 45 }}
-          dpr={dpr()}
-          frameloop="demand"
-          gl={{ antialias: !isLowPower, powerPreference: "high-performance", alpha: true }}
-        >
-          <Core tone={tone} paused={inputFocusActive} />
-        </Canvas>
+        {showOrbCanvas ? (
+          <Canvas
+            camera={{ position: [0, 0, 2.4], fov: 45 }}
+            dpr={dpr()}
+            frameloop="demand"
+            gl={{ antialias: !isLowPower, powerPreference: "high-performance", alpha: true }}
+          >
+            <Core tone={tone} paused={inputFocusActive} />
+          </Canvas>
+        ) : (
+          <div className="size-full grid place-items-center">
+            <Bot className="size-6 text-primary" />
+          </div>
+        )}
         <span className="absolute -top-1 -right-1 size-3 rounded-full bg-primary animate-pulse" />
       </motion.button>
 
