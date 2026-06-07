@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { Sidebar } from "@/components/Sidebar";
 import { WalletButton } from "@/components/WalletButton";
 import { AICopilot } from "@/components/AICopilot";
+import { InputFocusProvider } from "@/hooks/use-input-focus-active";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -152,6 +153,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <InputFocusProvider>
       {isLanding ? (
         <div className="min-h-screen">
           <Outlet />
@@ -191,6 +193,7 @@ function RootComponent() {
       />
       <SpeedInsights />
       <Analytics />
+      </InputFocusProvider>
     </QueryClientProvider>
   );
 }

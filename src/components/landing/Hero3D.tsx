@@ -4,7 +4,7 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { dpr, perfTier, isLowPower } from "@/lib/perf";
-import { useInputFocusActive } from "@/hooks/use-input-focus-active";
+import { useInputFocus } from "@/hooks/use-input-focus-active";
 
 /** Generates a building-shaped point cloud (procedural). */
 function buildingPoints(): Float32Array {
@@ -124,15 +124,13 @@ function Particles({ paused }: { paused: boolean }) {
 
 export function Hero3D() {
   const mouse = useRef({ x: 0, y: 0 });
-  const [maxDpr, setMaxDpr] = useState(dpr()[1]);
-  const inputFocusActive = useInputFocusActive();
-  // On mobile, fully unmount the WebGL canvas while an input is focused.
-  // The on-screen keyboard resizes the viewport, and keeping a Bloom-enabled
-  // WebGL context alive during that resize can crash the tab (especially on
-  // iOS Safari served from the Vercel SPA build). Desktop keeps it mounted.
-  const isMobile =
-    typeof navigator !== "undefined" &&
-    /Android.*Mobile|iPhone|iPod|Mobi/i.test(navigator.userAgent);
+  const { active: inputFocusActive, isMobile } = useInputFocus();
+  // Mobile: lighter DPR cap, no Bloom; canvas fully unmounts while any text input is focused
+  // to release the WebGL context before the on-screen keyboard resizes the viewport.
+  const desktopMaxDpr = dpr()[1];
+  const mobileMaxDpr = Math.min(1.5, desktopMaxDpr);
+  const [maxDpr, setMaxDpr] = useState(isMobile ? mobileMaxDpr : desktopMaxDpr);
+  const enableBloom = !isLowPower && !isMobile;
   const suspend = isMobile && inputFocusActive;
   return (
     <div
@@ -154,7 +152,7 @@ export function Hero3D() {
       >
         <PerformanceMonitor
           onDecline={() => setMaxDpr((d) => Math.max(1, d - 0.25))}
-          onIncline={() => setMaxDpr((d) => Math.min(dpr()[1], d + 0.1))}
+          onIncline={() => setMaxDpr((d) => Math.min(isMobile ? mobileMaxDpr : desktopMaxDpr, d + 0.1))}
         />
         <color attach="background" args={["#06090f"]} />
         <fog attach="fog" args={["#06090f", 14, 40]} />
@@ -164,7 +162,7 @@ export function Hero3D() {
           <Building mouse={mouse} paused={inputFocusActive} />
         </Float>
         <Particles paused={inputFocusActive} />
-        {!isLowPower && (
+        {enableBloom && (
           <EffectComposer>
             <Bloom intensity={1.0} luminanceThreshold={0.4} luminanceSmoothing={0.2} mipmapBlur />
           </EffectComposer>
