@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp, type RunLog } from "@/lib/store";
-import { ExternalLink, ScrollText, Download, Trash2 } from "lucide-react";
+import { ScrollText, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/oracle-logs")({
@@ -44,7 +44,6 @@ function OracleLogs() {
       "confidence",
       "anomaly_detected",
       "zk_mock_hash",
-      "tx_hash",
     ];
     const rows = filtered.map((l) => [
       new Date(l.timestamp).toISOString(),
@@ -53,7 +52,6 @@ function OracleLogs() {
       l.result.confidence.toString(),
       String(l.result.anomaly_detected),
       l.result.zk_mock_hash,
-      l.txHash ?? "",
     ]);
     const csv = [header, ...rows]
       .map((r) =>
@@ -176,7 +174,6 @@ function OracleLogs() {
                 <th className="text-left p-3">Conf.</th>
                 <th className="text-left p-3">Anomaly</th>
                 <th className="text-left p-3">ZK attestation</th>
-                <th className="text-left p-3">Tx</th>
               </tr>
             </thead>
             <tbody>
@@ -208,20 +205,6 @@ function OracleLogs() {
                     </td>
                     <td className="p-3 truncate max-w-[280px]" title={l.result.zk_mock_hash}>
                       {l.result.zk_mock_hash.slice(0, 14)}…{l.result.zk_mock_hash.slice(-6)}
-                    </td>
-                    <td className="p-3">
-                      {l.txHash ? (
-                        <a
-                          className="text-accent hover:underline inline-flex items-center gap-1"
-                          href={`https://sepolia.etherscan.io/tx/${l.txHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {l.txHash.slice(0, 10)}… <ExternalLink className="size-3" />
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
                     </td>
                   </motion.tr>
                 ))}

@@ -32,6 +32,19 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: false,
     target: "es2022",
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          tanstack: ["@tanstack/react-router", "@tanstack/react-query", "@tanstack/react-start"],
+          motion: ["framer-motion"],
+          three: ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"],
+          charts: ["recharts"],
+          pdf: ["pdfjs-dist"],
+        },
+      },
+    },
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
