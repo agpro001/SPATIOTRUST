@@ -13,8 +13,6 @@ import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { Sidebar } from "@/components/Sidebar";
-import { WalletButton } from "@/components/WalletButton";
-import { AICopilot } from "@/components/AICopilot";
 import { InputFocusProvider } from "@/hooks/use-input-focus-active";
 import { Toaster } from "sonner";
 
@@ -169,7 +167,6 @@ function RootComponent() {
                   oracle network · live
                 </div>
               </div>
-              <WalletButton />
             </header>
             <main className="flex-1 min-w-0">
               <Outlet />
@@ -177,7 +174,6 @@ function RootComponent() {
           </div>
         </div>
       )}
-      <AICopilot />
       <Toaster
         theme="dark"
         position="bottom-left"
