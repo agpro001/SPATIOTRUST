@@ -5,7 +5,6 @@ import { DropZone } from "@/components/DropZone";
 import { PointCloudScene } from "@/components/PointCloudScene";
 import { LiveTerminal } from "@/components/LiveTerminal";
 import { StatusBeacon } from "@/components/StatusBeacon";
-import { PublishProofButton } from "@/components/PublishProofButton";
 import { ContactSection } from "@/components/ContactSection";
 
 export const Route = createFileRoute("/app")({
@@ -43,8 +42,7 @@ function Dashboard() {
             Spatial Oracle Dashboard
           </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Drop a point cloud, image, or PDF. We validate, attest, and prepare it for on-chain
-            publication.
+            Drop a point cloud, image, or PDF. We validate, attest, and prepare it for review.
           </p>
         </div>
         <div className="flex gap-3 text-[11px] font-mono">
@@ -65,7 +63,6 @@ function Dashboard() {
         <div className="space-y-5">
           <DropZone />
           <StatusBeacon />
-          <PublishProofButton />
         </div>
         <div className="space-y-5 min-w-0">
           <motion.div

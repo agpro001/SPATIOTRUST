@@ -20,8 +20,8 @@ const steps = [
   },
   {
     icon: Radio,
-    title: "Publish",
-    desc: "Sign and broadcast the attestation on Sepolia via MetaMask or WalletConnect.",
+    title: "Review",
+    desc: "Inspect the attestation hash, confidence score, and detected structural anomalies.",
   },
 ];
 

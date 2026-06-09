@@ -9,8 +9,6 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const autoNarrate = useApp((s) => s.autoNarrate);
-  const setAutoNarrate = useApp((s) => s.setAutoNarrate);
   const baseSupportTolerance = useApp((s) => s.baseSupportTolerance);
   const setBaseSupportTolerance = useApp((s) => s.setBaseSupportTolerance);
   const confidenceSensitivity = useApp((s) => s.confidenceSensitivity);
@@ -26,19 +24,6 @@ function SettingsPage() {
           <SettingsIcon className="size-7 text-primary" /> Settings
         </h1>
       </header>
-
-      <section className="rounded-md border border-border bg-surface/60 p-5 space-y-3">
-        <h2 className="font-display font-semibold">AI Co-pilot</h2>
-        <label className="flex items-center gap-3 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoNarrate}
-            onChange={(e) => setAutoNarrate(e.target.checked)}
-            className="size-4 accent-[color:var(--primary)]"
-          />
-          Auto-narrate validation results
-        </label>
-      </section>
 
       <motion.section
         initial={{ opacity: 0, y: 10 }}
@@ -76,13 +61,7 @@ function SettingsPage() {
         <h2 className="font-display font-semibold">Network</h2>
         <div className="font-mono text-xs text-muted-foreground space-y-1">
           <div>
-            Chain: <span className="text-foreground">Sepolia (0xaa36a7)</span>
-          </div>
-          <div>
             Validation endpoint: <span className="text-foreground">/api/validate-spatial-data</span>
-          </div>
-          <div>
-            AI endpoint: <span className="text-foreground">/api/ai-chat · AI Mesh</span>
           </div>
         </div>
       </section>
