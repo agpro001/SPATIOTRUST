@@ -1,14 +1,12 @@
 import { create } from "zustand";
 import type { Point } from "./validator";
 import type { ValidationResult } from "./validator";
-import type { WalletState } from "./web3";
 
 export type RunLog = {
   id: string;
   scenario: string;
   timestamp: number;
   result: ValidationResult;
-  txHash?: string;
 };
 
 const LOG_KEY = "spatio:logs";
@@ -69,9 +67,6 @@ export type AppState = {
   activeStepIndex: number; // -1 idle
   terminalLines: { id: string; text: string; tone: "info" | "ok" | "fail" }[];
   logs: RunLog[];
-  wallet: WalletState | null;
-  wcProjectId: string;
-  autoNarrate: boolean;
   ingestPhase: IngestPhase;
   ingestPct: number; // 0..1, -1 = indeterminate
   ingestMessage: string;
@@ -85,10 +80,6 @@ export type AppState = {
   clearTerminal: () => void;
   setResult: (r: ValidationResult | null) => void;
   addLog: (log: RunLog) => void;
-  attachTx: (id: string, tx: string) => void;
-  setWallet: (w: WalletState | null) => void;
-  setWcProjectId: (id: string) => void;
-  setAutoNarrate: (v: boolean) => void;
   setIngest: (phase: IngestPhase, pct: number, message: string) => void;
   resetIngest: () => void;
   setBaseSupportTolerance: (v: number) => void;
@@ -110,9 +101,6 @@ export const useApp = create<AppState>((set) => ({
     },
   ],
   logs: loadLogs(),
-  wallet: null,
-  wcProjectId: typeof window !== "undefined" ? (localStorage.getItem("spatio:wc") ?? "") : "",
-  autoNarrate: true,
   ingestPhase: "idle",
   ingestPct: 0,
   ingestMessage: "",
@@ -138,18 +126,6 @@ export const useApp = create<AppState>((set) => ({
       saveLogs(logs);
       return { logs };
     }),
-  attachTx: (id, tx) =>
-    set((s) => {
-      const logs = s.logs.map((l) => (l.id === id ? { ...l, txHash: tx } : l));
-      saveLogs(logs);
-      return { logs };
-    }),
-  setWallet: (wallet) => set({ wallet }),
-  setWcProjectId: (id) => {
-    if (typeof window !== "undefined") localStorage.setItem("spatio:wc", id);
-    set({ wcProjectId: id });
-  },
-  setAutoNarrate: (autoNarrate) => set({ autoNarrate }),
   setIngest: (ingestPhase, ingestPct, ingestMessage) =>
     set({ ingestPhase, ingestPct, ingestMessage }),
   resetIngest: () => set({ ingestPhase: "idle", ingestPct: 0, ingestMessage: "" }),
