@@ -20,8 +20,8 @@ const faqs = [
     a: "Inside a TanStack Start server function on Cloudflare Workers. The Python reference under /backend produces identical hashes for hackathon judges who want to verify the logic.",
   },
   {
-    q: "Do I need a wallet?",
-    a: "No. The oracle runs directly in the app and shows validation results without any wallet connection.",
+    q: "Can I run the oracle directly?",
+    a: "Yes. The oracle runs directly in the app and shows validation results immediately.",
   },
   {
     q: "Is my data stored?",
