@@ -15,7 +15,6 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiValidateSpatialDataRouteImport } from './routes/api/validate-spatial-data'
 import { Route as ApiAiVisionRouteImport } from './routes/api/ai-vision'
-import { Route as ApiAiChatRouteImport } from './routes/api/ai-chat'
 import { Route as ApiMockScenarioRouteImport } from './routes/api/mock.$scenario'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -48,11 +47,6 @@ const ApiAiVisionRoute = ApiAiVisionRouteImport.update({
   path: '/api/ai-vision',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAiChatRoute = ApiAiChatRouteImport.update({
-  id: '/api/ai-chat',
-  path: '/api/ai-chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiMockScenarioRoute = ApiMockScenarioRouteImport.update({
   id: '/api/mock/$scenario',
   path: '/api/mock/$scenario',
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
-  '/api/ai-chat': typeof ApiAiChatRoute
   '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
-  '/api/ai-chat': typeof ApiAiChatRoute
   '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/oracle-logs': typeof OracleLogsRoute
   '/settings': typeof SettingsRoute
-  '/api/ai-chat': typeof ApiAiChatRoute
   '/api/ai-vision': typeof ApiAiVisionRoute
   '/api/validate-spatial-data': typeof ApiValidateSpatialDataRoute
   '/api/mock/$scenario': typeof ApiMockScenarioRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/oracle-logs'
     | '/settings'
-    | '/api/ai-chat'
     | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/oracle-logs'
     | '/settings'
-    | '/api/ai-chat'
     | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/oracle-logs'
     | '/settings'
-    | '/api/ai-chat'
     | '/api/ai-vision'
     | '/api/validate-spatial-data'
     | '/api/mock/$scenario'
@@ -128,7 +116,6 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   OracleLogsRoute: typeof OracleLogsRoute
   SettingsRoute: typeof SettingsRoute
-  ApiAiChatRoute: typeof ApiAiChatRoute
   ApiAiVisionRoute: typeof ApiAiVisionRoute
   ApiValidateSpatialDataRoute: typeof ApiValidateSpatialDataRoute
   ApiMockScenarioRoute: typeof ApiMockScenarioRoute
@@ -178,13 +165,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiVisionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/ai-chat': {
-      id: '/api/ai-chat'
-      path: '/api/ai-chat'
-      fullPath: '/api/ai-chat'
-      preLoaderRoute: typeof ApiAiChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/mock/$scenario': {
       id: '/api/mock/$scenario'
       path: '/api/mock/$scenario'
@@ -200,7 +180,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   OracleLogsRoute: OracleLogsRoute,
   SettingsRoute: SettingsRoute,
-  ApiAiChatRoute: ApiAiChatRoute,
   ApiAiVisionRoute: ApiAiVisionRoute,
   ApiValidateSpatialDataRoute: ApiValidateSpatialDataRoute,
   ApiMockScenarioRoute: ApiMockScenarioRoute,
@@ -208,13 +187,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

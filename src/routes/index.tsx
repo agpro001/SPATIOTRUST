@@ -9,7 +9,6 @@ import {
   Zap,
   Layers,
   Cpu,
-  Globe,
   Shield,
 } from "lucide-react";
 import { LandingHeader } from "@/components/landing/LandingHeader";
@@ -29,7 +28,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A decentralized spatial oracle network: validate real-world 3D point clouds, attest with zk-style commitments, and publish on-chain — powered by Gemini Vision.",
+          "A decentralized spatial oracle network: validate real-world 3D point clouds and attest with zk-style commitments — powered by Gemini Vision.",
       },
       { property: "og:title", content: "SpatioTrust — Decentralized Spatial Oracle Network" },
       {
@@ -201,12 +200,7 @@ const stack = [
   {
     icon: Sparkles,
     name: "Gemini 2.0",
-    desc: "Vision-driven structure inference + streaming chat",
-  },
-  {
-    icon: Globe,
-    name: "Ethers + WalletConnect",
-    desc: "Sepolia attestation publishing for any wallet",
+    desc: "Vision-driven structure inference",
   },
 ];
 
@@ -264,7 +258,7 @@ function FinalCta() {
           Ready to attest?
         </h2>
         <p className="text-muted-foreground mt-4 text-lg">
-          The oracle is live. Drop a file, sign the attestation, publish to Sepolia.
+          The oracle is live. Drop a file, validate the structure, and review the attestation.
         </p>
         <div className="mt-8">
           <Link to="/app">
