@@ -42,6 +42,7 @@ export default defineConfig({
           three: ["three", "@react-three/fiber", "@react-three/drei", "@react-three/postprocessing"],
           charts: ["recharts"],
           pdf: ["pdfjs-dist"],
+          walletconnect: ["@walletconnect/ethereum-provider"],
         },
       },
     },
