@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Github } from "lucide-react";
 import { FxButton } from "@/components/FxButton";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WalletButton } from "@/components/WalletButton";
 
 export function LandingHeader() {
   return (
@@ -45,6 +46,7 @@ export function LandingHeader() {
         >
           <Github className="size-4" />
         </a>
+        <WalletButton />
         <Link to="/app">
           <FxButton size="sm" glow>
             Launch Oracle →
