@@ -1,650 +1,95 @@
-```html
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
     <title>SpatioTrust — Decentralized Spatial Oracle Network</title>
-
     <meta
       name="description"
       content="Verify the physical integrity of real-world 3D environments before releasing on-chain funds. ZK-proof attested spatial oracles."
     />
-
     <style>
-
-      html,
-      body,
-      #root{
-        height:100%;
+      html, body, #root { height: 100%; }
+      body { margin: 0; background: #0a0a0a; color: #f5f5f5; font-family: system-ui, -apple-system, sans-serif; }
+      #boot {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        background: #0a0a0a; z-index: 9999; transition: opacity .3s ease;
       }
-
-      body{
-        margin:0;
-        background:#0a0a0a;
-        color:#f5f5f5;
-        font-family:system-ui,-apple-system,sans-serif;
-        overflow:hidden;
+      #boot .dot {
+        width: 10px; height: 10px; border-radius: 9999px;
+        background: #f5f5f5; animation: pulse 1.2s ease-in-out infinite;
       }
-
-      /* =====================================================
-         PREMIUM SPATIOTRUST BOOT LOADER
-      ===================================================== */
-
-      #boot{
-        position:fixed;
-        inset:0;
-        z-index:9999;
-        overflow:hidden;
-
-        display:flex;
-        align-items:center;
-        justify-content:center;
-
-        background:
-        radial-gradient(circle at top left,
-        rgba(0,255,120,0.08),
-        transparent 35%),
-
-        radial-gradient(circle at bottom right,
-        rgba(0,180,80,0.08),
-        transparent 35%),
-
-        linear-gradient(
-        135deg,
-        #010201,
-        #03120a 40%,
-        #000000 100%);
-
-        transition:opacity .5s ease;
+      @keyframes pulse { 0%,100% { opacity: .3; transform: scale(.85);} 50% { opacity: 1; transform: scale(1);} }
+      #boot-fallback {
+        display: none; max-width: 28rem; text-align: center; padding: 1.5rem;
       }
-
-      /* =========================
-         BACKGROUND GLOW
-      ========================= */
-
-      .boot-glow{
-        position:absolute;
-        border-radius:50%;
-        filter:blur(100px);
-        opacity:.5;
-        animation:bootFloat 10s ease-in-out infinite;
+      #boot-fallback h1 { font-size: 1.1rem; margin: 0 0 .5rem; }
+      #boot-fallback p { color: #a3a3a3; margin: 0 0 1rem; font-size: .9rem; }
+      #boot-fallback button {
+        background: #f5f5f5; color: #0a0a0a; border: 0;
+        padding: .55rem 1rem; border-radius: .375rem; cursor: pointer; font: inherit;
       }
-
-      .boot-glow.one{
-        width:340px;
-        height:340px;
-        background:#00ff88;
-        top:-100px;
-        left:-100px;
-      }
-
-      .boot-glow.two{
-        width:300px;
-        height:300px;
-        background:#00994d;
-        bottom:-100px;
-        right:-100px;
-        animation-delay:3s;
-      }
-
-      @keyframes bootFloat{
-        0%{
-          transform:translate(0px,0px);
-        }
-
-        50%{
-          transform:translate(40px,25px);
-        }
-
-        100%{
-          transform:translate(0px,0px);
-        }
-      }
-
-      /* =========================
-         3D CARD
-      ========================= */
-
-      .boot-card{
-        position:relative;
-
-        width:min(900px,90vw);
-        height:320px;
-
-        border-radius:38px;
-
-        background:
-        linear-gradient(
-        145deg,
-        rgba(10,30,18,0.92),
-        rgba(0,0,0,0.96));
-
-        border:1px solid rgba(0,255,120,0.12);
-
-        overflow:hidden;
-
-        box-shadow:
-        0 0 40px rgba(0,255,120,0.08),
-        inset 0 0 40px rgba(0,255,120,0.04);
-
-        transform-style:preserve-3d;
-
-        animation:cardFloat 7s ease-in-out infinite;
-      }
-
-      @keyframes cardFloat{
-
-        0%{
-          transform:rotateX(2deg) rotateY(-3deg);
-        }
-
-        50%{
-          transform:rotateX(-2deg) rotateY(3deg);
-        }
-
-        100%{
-          transform:rotateX(2deg) rotateY(-3deg);
-        }
-      }
-
-      /* =========================
-         GRID
-      ========================= */
-
-      .boot-grid{
-        position:absolute;
-        inset:0;
-
-        background-image:
-        linear-gradient(rgba(0,255,120,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,120,0.04) 1px, transparent 1px);
-
-        background-size:40px 40px;
-
-        opacity:.5;
-      }
-
-      /* =========================
-         MAIN TITLE
-      ========================= */
-
-      .boot-title{
-        position:absolute;
-
-        top:50%;
-        left:50%;
-
-        transform:translate(-50%,-50%);
-
-        font-size:clamp(56px,10vw,120px);
-        font-weight:900;
-        letter-spacing:-5px;
-
-        color:#07140c;
-
-        text-transform:uppercase;
-
-        user-select:none;
-
-        filter:
-        drop-shadow(0 0 30px rgba(0,255,120,0.18))
-        drop-shadow(0 0 60px rgba(0,255,120,0.08));
-      }
-
-      /* =========================
-         LIQUID TEXT FILL
-      ========================= */
-
-      .boot-title-fill{
-        position:absolute;
-        inset:0;
-
-        background:
-        linear-gradient(
-        to bottom,
-        #ffffff 0%,
-        #eafff4 35%,
-        #95ffbf 100%
-        );
-
-        -webkit-background-clip:text;
-        background-clip:text;
-
-        color:transparent;
-
-        clip-path:polygon(
-        0% 100%,
-        0% 100%,
-        100% 100%,
-        100% 100%
-        );
-
-        animation:liquidFill 7s ease-in-out forwards;
-      }
-
-      @keyframes liquidFill{
-
-        0%{
-          clip-path:polygon(
-          0% 100%,
-          0% 92%,
-          13% 95%,
-          27% 90%,
-          42% 94%,
-          57% 88%,
-          73% 92%,
-          87% 86%,
-          100% 91%,
-          100% 100%
-          );
-        }
-
-        25%{
-          clip-path:polygon(
-          0% 100%,
-          0% 74%,
-          12% 78%,
-          28% 70%,
-          43% 76%,
-          58% 68%,
-          73% 74%,
-          88% 64%,
-          100% 71%,
-          100% 100%
-          );
-        }
-
-        50%{
-          clip-path:polygon(
-          0% 100%,
-          0% 50%,
-          12% 58%,
-          25% 46%,
-          40% 54%,
-          55% 42%,
-          70% 50%,
-          85% 38%,
-          100% 48%,
-          100% 100%
-          );
-        }
-
-        75%{
-          clip-path:polygon(
-          0% 100%,
-          0% 22%,
-          12% 28%,
-          28% 18%,
-          43% 25%,
-          58% 14%,
-          72% 20%,
-          87% 10%,
-          100% 18%,
-          100% 100%
-          );
-        }
-
-        100%{
-          clip-path:polygon(
-          0% 100%,
-          0% 0%,
-          100% 0%,
-          100% 100%
-          );
-        }
-      }
-
-      /* =========================
-         SHINE
-      ========================= */
-
-      .boot-shine{
-        position:absolute;
-        top:-50%;
-        left:-20%;
-
-        width:120px;
-        height:220%;
-
-        background:
-        linear-gradient(
-        to right,
-        transparent,
-        rgba(255,255,255,.35),
-        transparent
-        );
-
-        transform:rotate(18deg);
-
-        filter:blur(12px);
-
-        animation:shineMove 4s infinite ease-in-out;
-      }
-
-      @keyframes shineMove{
-
-        0%{
-          left:-30%;
-        }
-
-        100%{
-          left:130%;
-        }
-      }
-
-      /* =========================
-         LOADING %
-      ========================= */
-
-      #boot-progress{
-        position:absolute;
-
-        bottom:28px;
-        right:32px;
-
-        color:#88ffba;
-
-        font-size:14px;
-        letter-spacing:3px;
-
-        opacity:.85;
-      }
-
-      /* =========================
-         PARTICLES
-      ========================= */
-
-      .boot-particle{
-        position:absolute;
-
-        width:4px;
-        height:4px;
-
-        border-radius:50%;
-
-        background:#00ff88;
-
-        opacity:.7;
-
-        filter:blur(1px);
-
-        animation:particleFloat linear infinite;
-      }
-
-      @keyframes particleFloat{
-
-        from{
-          transform:translateY(0px);
-          opacity:0;
-        }
-
-        20%{
-          opacity:1;
-        }
-
-        to{
-          transform:translateY(-250px);
-          opacity:0;
-        }
-      }
-
-      /* =========================
-         FALLBACK
-      ========================= */
-
-      #boot-fallback{
-        display:none;
-
-        position:absolute;
-
-        bottom:40px;
-        left:50%;
-
-        transform:translateX(-50%);
-
-        max-width:28rem;
-
-        text-align:center;
-
-        padding:1.5rem;
-
-        background:rgba(0,0,0,.35);
-
-        border:1px solid rgba(255,255,255,.08);
-
-        border-radius:18px;
-
-        backdrop-filter:blur(12px);
-      }
-
-      #boot-fallback h1{
-        font-size:1.1rem;
-        margin:0 0 .5rem;
-      }
-
-      #boot-fallback p{
-        color:#a3a3a3;
-        margin:0 0 1rem;
-        font-size:.9rem;
-      }
-
-      #boot-fallback button{
-        background:#f5f5f5;
-        color:#0a0a0a;
-        border:0;
-        padding:.55rem 1rem;
-        border-radius:.375rem;
-        cursor:pointer;
-        font:inherit;
-      }
-
     </style>
   </head>
-
   <body>
-
     <div id="root"></div>
-
-    <!-- =====================================================
-         SPATIOTRUST PREMIUM LOADER
-    ====================================================== -->
-
     <div id="boot" aria-hidden="true">
-
-      <div class="boot-glow one"></div>
-      <div class="boot-glow two"></div>
-
-      <div class="boot-card">
-
-        <div class="boot-grid"></div>
-
-        <div class="boot-title">
-
-          SPATIOTRUST
-
-          <div class="boot-title-fill">
-            SPATIOTRUST
-          </div>
-
-        </div>
-
-        <div class="boot-shine"></div>
-
-        <div id="boot-progress">
-          0%
-        </div>
-
-      </div>
-
+      <div class="dot" id="boot-spinner"></div>
       <div id="boot-fallback">
         <h1>This page didn't load</h1>
         <p id="boot-error-msg">Something went wrong while starting the app.</p>
         <button onclick="location.reload()">Try again</button>
       </div>
-
     </div>
-
     <script>
-
       (function () {
-
-        /* =====================================================
-           PARTICLES
-        ===================================================== */
-
-        for(let i=0;i<45;i++){
-
-          let particle = document.createElement("div");
-
-          particle.classList.add("boot-particle");
-
-          particle.style.left = Math.random() * 100 + "vw";
-
-          particle.style.bottom = "-20px";
-
-          particle.style.animationDuration =
-          (4 + Math.random() * 5) + "s";
-
-          particle.style.animationDelay =
-          Math.random() * 5 + "s";
-
-          document.body.appendChild(particle);
-        }
-
-        /* =====================================================
-           PROGRESS COUNTER
-        ===================================================== */
-
-        let progress = document.getElementById("boot-progress");
-
-        let count = 0;
-
-        let progressInterval = setInterval(() => {
-
-          count++;
-
-          if(progress){
-            progress.innerText = count + "%";
-          }
-
-          if(count >= 100){
-            clearInterval(progressInterval);
-          }
-
-        }, 70);
-
-        /* =====================================================
-           ERROR CAPTURE
-        ===================================================== */
-
+        // Runtime error capture with stack traces — logs to console + window.__APP_ERRORS__
         window.__APP_ERRORS__ = window.__APP_ERRORS__ || [];
-
         function record(kind, err) {
-
           var entry = {
             kind: kind,
             time: new Date().toISOString(),
             message: (err && err.message) || String(err),
             stack: (err && err.stack) || null,
           };
-
           window.__APP_ERRORS__.push(entry);
-
-          try {
-            console.error("[app:" + kind + "]", entry.message, entry.stack || "");
-          } catch (e) {}
-
+          try { console.error("[app:" + kind + "]", entry.message, entry.stack || ""); } catch (e) {}
         }
+        window.addEventListener("error", function (e) { record("error", e.error || e.message); });
+        window.addEventListener("unhandledrejection", function (e) { record("unhandledrejection", e.reason); });
 
-        window.addEventListener("error", function (e) {
-          record("error", e.error || e.message);
-        });
-
-        window.addEventListener("unhandledrejection", function (e) {
-          record("unhandledrejection", e.reason);
-        });
-
-        /* =====================================================
-           FALLBACK
-        ===================================================== */
-
+        // If React never mounts within 12s, reveal a retry fallback instead of an
+        // infinite spinner. Mount is detected by #root having any child node.
         function showFallback(msg) {
-
-          var card = document.querySelector(".boot-card");
-
-          if(card){
-            card.style.opacity = ".15";
-          }
-
           var fb = document.getElementById("boot-fallback");
-
+          var sp = document.getElementById("boot-spinner");
+          if (sp) sp.style.display = "none";
           if (fb) {
-
             fb.style.display = "block";
-
             if (msg) {
-
               var m = document.getElementById("boot-error-msg");
-
-              if (m){
-                m.textContent = msg;
-              }
+              if (m) m.textContent = msg;
             }
           }
         }
-
-        /* =====================================================
-           REACT MOUNT DETECTION
-        ===================================================== */
-
         var startedAt = Date.now();
-
         var poll = setInterval(function () {
-
           var root = document.getElementById("root");
-
           if (root && root.firstChild) {
-
             var boot = document.getElementById("boot");
-
-            if (boot) {
-
-              boot.style.opacity = "0";
-
-              setTimeout(function(){
-
-                boot.remove();
-
-              }, 500);
-            }
-
+            if (boot) { boot.style.opacity = "0"; setTimeout(function(){ boot.remove(); }, 300); }
             clearInterval(poll);
-
             return;
           }
-
           if (Date.now() - startedAt > 12000) {
-
             clearInterval(poll);
-
-            var last =
-            window.__APP_ERRORS__[window.__APP_ERRORS__.length - 1];
-
+            var last = window.__APP_ERRORS__[window.__APP_ERRORS__.length - 1];
             showFallback(last ? last.message : null);
           }
-
         }, 200);
-
       })();
-
     </script>
-
     <script type="module" src="/src/entry.client.tsx"></script>
-
   </body>
 </html>
-```
-                                   
